@@ -1,0 +1,7 @@
+c:\users\karolina\documents\visual studio 2010\Projects\GK3D1\GK3D1\GK3D1\bin\x86\Debug\GK3D1.exe
+c:\users\karolina\documents\visual studio 2010\Projects\GK3D1\GK3D1\GK3D1\bin\x86\Debug\GK3D1.pdb
+c:\users\karolina\documents\visual studio 2010\Projects\GK3D1\GK3D1\GK3D1\obj\x86\Debug\GK3D1.csprojResolveAssemblyReference.cache
+c:\users\karolina\documents\visual studio 2010\Projects\GK3D1\GK3D1\GK3D1\obj\x86\Debug\Microsoft.Xna.Framework.RuntimeProfile.txt
+c:\users\karolina\documents\visual studio 2010\Projects\GK3D1\GK3D1\GK3D1\obj\x86\Debug\GK3D1.exe
+c:\users\karolina\documents\visual studio 2010\Projects\GK3D1\GK3D1\GK3D1\obj\x86\Debug\GK3D1.pdb
+c:\users\karolina\documents\visual studio 2010\Projects\GK3D1\GK3D1\GK3D1\bin\x86\Debug\Content\effects.xnb
