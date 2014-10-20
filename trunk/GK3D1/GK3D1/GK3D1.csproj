@@ -93,6 +93,9 @@
     <Reference Include="System">
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Web">
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Web.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml">
       <Private>False</Private>
     </Reference>
@@ -108,6 +111,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arena.cs" />
+    <Compile Include="Bench.cs" />
+    <Compile Include="Cuboid.cs" />
+    <Compile Include="Material.cs" />
+    <Compile Include="ObjectModel.cs" />
+    <Compile Include="PointLightMaterialcs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Game1.cs" />

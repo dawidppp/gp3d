@@ -17,9 +17,10 @@ namespace GK3D1
     public class Game1 : Microsoft.Xna.Framework.Game
     {
         GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
         GraphicsDevice device;
         Effect effect;
+        BasicEffect basicEffectCourt;
+        BasicEffect basicEffectFloor;
         Texture2D heightMap;
         Matrix viewMatrix;
         Matrix projectionMatrix;
@@ -35,11 +36,11 @@ namespace GK3D1
         float updownRot = 0;
         float thirdRot = 0;
         const float rotationSpeed = 0.3f;
-        const float moveSpeed = 30.0f;
+        const float moveSpeed = 800.0f;
         MouseState originalMouseState;
         Matrix worldMatrix;
         bool MouseEnable = true;
-        Vector3 clipVectorNormal = new Vector3(0, 0, 0);
+        private Effect simpleEffect;
 
         public struct VertexPositionColorNormal
         {
@@ -73,8 +74,8 @@ namespace GK3D1
             graphics.PreferredBackBufferHeight = 500;
             graphics.IsFullScreen = false;
             graphics.ApplyChanges();
-            Window.Title = "GK 3D";
-            IsMouseVisible = true;
+            Window.Title = "Volleyball Arena";
+            //IsMouseVisible = true;
 
             base.Initialize();
         }
@@ -85,12 +86,15 @@ namespace GK3D1
         /// </summary>
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(GraphicsDevice);
             device = graphics.GraphicsDevice;
-            effect = Content.Load<Effect>("effects"); ;
-            arena = new Arena();
-            //SetUpCamera();
-            //UpdateViewMatrix();
+            effect = Content.Load<Effect>("effects");
+            basicEffectCourt = new BasicEffect(device);
+            basicEffectFloor = new BasicEffect(device);
+            simpleEffect = Content.Load<Effect>("PointLightEffect");
+            arena = new Arena(Content);
+            graphics.PreferMultiSampling = true;
+            graphics.ApplyChanges();
+            arena.Bench = new Bench(Content, new BasicEffect(device));
             Mouse.SetPosition(device.Viewport.Width / 2, device.Viewport.Height / 2);
             originalMouseState = Mouse.GetState();
             axis = new VertexPositionColorNormal[6];
@@ -117,7 +121,7 @@ namespace GK3D1
 
             SetUpCamera();
             CalculateNormals(arena.Vertices, arena.Indices);
-            CalculateNormals(arena.FieldVertices, arena.FieldIndices);
+            //CalculateNormals(arena.FieldVertices, arena.FieldIndices);
 
             // TODO: use this.Content to load your game content here
         }
@@ -138,35 +142,23 @@ namespace GK3D1
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            //MouseState mouseState = Mouse.GetState();
-            //KeyboardState keyState = Keyboard.GetState();
-            //if (mouseState.Y < graphics.PreferredBackBufferHeight && mouseState.Y > 0)
-            //{
-            //    if (mouseState.X > graphics.PreferredBackBufferWidth * 3 / 4 && mouseState.X < graphics.PreferredBackBufferWidth)
-            //        horizontalAngle = 0.01f;
-            //    else if (mouseState.X < graphics.PreferredBackBufferWidth / 4 && mouseState.X > 0)
-            //        horizontalAngle = -0.01f;
-            //    else
-            //        horizontalAngle = 0;
-            //}
-            //if (mouseState.X < graphics.PreferredBackBufferWidth && mouseState.X > 0)
-            //{
-            //    if (mouseState.Y > graphics.PreferredBackBufferHeight * 3 / 4 && mouseState.Y < graphics.PreferredBackBufferHeight)
-            //        verticalAngle = 0.01f;
-            //    else if (mouseState.Y < graphics.PreferredBackBufferHeight / 4 && mouseState.Y > 0)
-            //        verticalAngle = -0.01f;
-            //    else verticalAngle = 0;
-            //}
-            //if (keyState.IsKeyDown(Keys.Delete))
-            //    angle += 0.05f;
-            //if (keyState.IsKeyDown(Keys.PageDown))
-            //    angle -= 0.05f;
             float timeDifference = (float)gameTime.ElapsedGameTime.TotalMilliseconds / 1000.0f;
             ProcessInput(timeDifference);
+            basicEffectFloor.World = Matrix.Identity;
+            basicEffectFloor.View = viewMatrix;
+            basicEffectFloor.Projection = projectionMatrix;
+            basicEffectFloor.TextureEnabled = true;
+            basicEffectFloor.Texture = arena.FloorTexture;
+
+            basicEffectCourt.World = Matrix.Identity;
+            basicEffectCourt.View = viewMatrix;
+            basicEffectCourt.Projection = projectionMatrix;
+            basicEffectCourt.TextureEnabled = true;
+            basicEffectCourt.Texture = arena.CourtTexture;
 
             base.Update(gameTime);
         }
-        
+
 
         private void ProcessInput(float amount)
         {
@@ -183,35 +175,22 @@ namespace GK3D1
             Vector3 moveVector = new Vector3(0, 0, 0);
             KeyboardState keyState = Keyboard.GetState();
             if (keyState.IsKeyDown(Keys.Up))
-                moveVector += new Vector3(0, 0, -2);
+                moveVector += new Vector3(0, 0, -1);
             if (keyState.IsKeyDown(Keys.Down))
-                moveVector += new Vector3(0, 0, 2);
+                moveVector += new Vector3(0, 0, 1);
             if (keyState.IsKeyDown(Keys.Right))
-                moveVector += new Vector3(2, 0, 0);
+                moveVector += new Vector3(1, 0, 0);
             if (keyState.IsKeyDown(Keys.Left))
-                moveVector += new Vector3(-2, 0, 0);
+                moveVector += new Vector3(-1, 0, 0);
             if (keyState.IsKeyDown(Keys.PageUp))
-                moveVector += new Vector3(0, 2, 0);
+                moveVector += new Vector3(0, 1, 0);
             if (keyState.IsKeyDown(Keys.PageDown))
-                moveVector += new Vector3(0, -2, 0);
-            if (keyState.IsKeyDown(Keys.P))
-                thirdRot -= rotationSpeed * 1f * amount;
-            if (keyState.IsKeyDown(Keys.O))
-                thirdRot += rotationSpeed * 1f * amount;
+                moveVector += new Vector3(0, -1, 0);
             if (keyState.IsKeyDown(Keys.Tab))
                 MouseEnable = !MouseEnable;
-            if (keyState.IsKeyDown(Keys.I))
-                updownRot -= rotationSpeed * 1f * amount;
-            if (keyState.IsKeyDown(Keys.U))
-                updownRot += rotationSpeed * 1f * amount;
-            if (keyState.IsKeyDown(Keys.Y))
-                leftrightRot -= rotationSpeed * 1f * amount;
-            if (keyState.IsKeyDown(Keys.T))
-                leftrightRot += rotationSpeed * 1f * amount;
-
-
             if (keyState.IsKeyDown(Keys.Escape))
                 this.Exit();
+
             AddToCameraPosition(moveVector * amount);
         }
 
@@ -225,20 +204,15 @@ namespace GK3D1
 
         private void UpdateViewMatrix()
         {
-            Matrix cameraRotation = Matrix.CreateRotationX(updownRot) * Matrix.CreateRotationY(leftrightRot);
-            Matrix cameraRotation2 = Matrix.CreateRotationZ(thirdRot) * Matrix.CreateRotationX(updownRot) * Matrix.CreateRotationY(leftrightRot);
-            Vector3 cameraOriginalTarget = new Vector3(0, 0, -1);
-            Vector3 cameraOriginalUpVector = new Vector3(0, 1, 0);
-            Vector3 cameraOriginalRightVector = new Vector3(1, 0, 0);
+            var cameraRotationMatrix = Matrix.CreateRotationX(updownRot) * Matrix.CreateRotationY(leftrightRot);
 
-            Vector3 cameraRotatedTarget = Vector3.Transform(cameraOriginalTarget, cameraRotation2);
-            Vector3 cameraFinalTarget = position + cameraRotatedTarget;
+            var cameraOriginalTargetVector = new Vector3(0, 0, -1);
+            var cameraOriginalUpVector = new Vector3(0, 1, 0);
+            var cameraRotatedTargetVector = Vector3.Transform(cameraOriginalTargetVector, cameraRotationMatrix);
+            var cameraFinalTargetVector = position + cameraRotatedTargetVector;
+            var cameraRotatedUpVector = Vector3.Transform(cameraOriginalUpVector, cameraRotationMatrix);
 
-
-            Vector3 cameraRotatedUpVector = Vector3.Transform(cameraOriginalUpVector, cameraRotation2);
-
-
-            viewMatrix = Matrix.CreateLookAt(position, cameraFinalTarget, cameraRotatedUpVector);
+            viewMatrix = Matrix.CreateLookAt(position, cameraFinalTargetVector, cameraRotatedUpVector);
         }
 
         /// <summary>
@@ -248,15 +222,9 @@ namespace GK3D1
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.LightBlue);
-            RasterizerState rs = new RasterizerState();
-            //rs.CullMode = CullMode.None;
-            //rs.FillMode = FillMode.WireFrame;
-            //device.RasterizerState = rs;
-            
-            //viewMatrix = viewMatrix * Matrix.CreateRotationY(horizontalAngle) * Matrix.CreateRotationX(verticalAngle);
-            Matrix worldMatrix = Matrix.Identity;
-            //Matrix worldMatrix = Matrix.CreateTranslation(position) * Matrix.CreateRotationY(horizontalAngle) * Matrix.CreateTranslation(-position); // * Matrix.CreateRotationX(verticalAngle);
-            //Matrix worldMatrix = Matrix.CreateTranslation(new Vector3(0, -300, -1000)) * Matrix.CreateRotationY(horizontalAngle) * Matrix.CreateRotationX(verticalAngle);
+            //RasterizerState rs = new RasterizerState();
+
+            worldMatrix = Matrix.Identity;
             effect.CurrentTechnique = effect.Techniques["Colored"];
             effect.Parameters["xView"].SetValue(viewMatrix);
             effect.Parameters["xProjection"].SetValue(projectionMatrix);
@@ -266,27 +234,88 @@ namespace GK3D1
             effect.Parameters["xLightDirection"].SetValue(lightDirection);
             effect.Parameters["xAmbient"].SetValue(0.4f);
             effect.Parameters["xEnableLighting"].SetValue(true);
-            //effect.VertexColorEnabled = true;
-            //effect.View = viewMatrix;
-            //effect.World = Matrix.CreateTranslation(new Vector3(0, 0, -10)) * Matrix.CreateRotationY(horizontalAngle) * Matrix.CreateRotationX(verticalAngle);
-            //effect.Projection = projectionMatrix;
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.Vertices, 0, arena.Vertices.Length, arena.Indices, 0, arena.Indices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
-                device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FieldVertices, 0, arena.FieldVertices.Length, arena.FieldIndices, 0, arena.FieldIndices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
-                device.DrawUserIndexedPrimitives(PrimitiveType.LineList, axis, 0, axis.Length, axisIndices, 0, 3, VertexPositionColorNormal.VertexDeclaration);
+                device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.Vertices, 0, arena.Vertices.Length,
+                    arena.Indices, 0, arena.Indices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
+                device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.Net.Vertices, 0, arena.Net.Vertices.Length,
+                    arena.Net.Indices, 0, arena.Net.Indices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
+                device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.LeftPost.Vertices, 0, arena.LeftPost.Vertices.Length,
+                    arena.LeftPost.Indices, 0, arena.LeftPost.Indices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
+                device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.RightPost.Vertices, 0, arena.RightPost.Vertices.Length,
+                    arena.RightPost.Indices, 0, arena.RightPost.Indices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
+                //device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FieldVertices, 0, arena.FieldVertices.Length, arena.FieldIndices, 0, arena.FieldIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
+                device.DrawUserIndexedPrimitives(PrimitiveType.LineList, axis, 0, axis.Length, axisIndices, 0, 3,
+                    VertexPositionColorNormal.VertexDeclaration);
+            }
+            
+            DrawModelFbx(viewMatrix, new Vector3(-600, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0,300,0));
+            DrawModelFbx(viewMatrix, new Vector3(-150, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
+            DrawModelFbx(viewMatrix, new Vector3(250, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
+            DrawModelFbx(viewMatrix, new Vector3(700, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
+            DrawModelFbx(viewMatrix, new Vector3(-600, -970, -500), arena.Bench.BenchModel, 1f, new Vector3(0, -300, 0));
+            DrawModelFbx(viewMatrix, new Vector3(-150, -970, -500), arena.Bench.BenchModel, 1f, new Vector3(0, -300, 0));
+            DrawModelFbx(viewMatrix, new Vector3(250, -970, -500), arena.Bench.BenchModel, 1f, new Vector3(0, -300, 0));
+            DrawModelFbx(viewMatrix, new Vector3(700, -970, -500), arena.Bench.BenchModel, 1f, new Vector3(0, -300, 0));
+
+            foreach (EffectPass pass2 in basicEffectFloor.CurrentTechnique.Passes)
+            {
+                pass2.Apply();
+                basicEffectFloor.LightingEnabled = true;
+                basicEffectFloor.PreferPerPixelLighting = true;
+                //basicEffectFloor.PreferPerPixelLighting = true;
+                //basicEffectFloor.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
+                // basicEffectFloor.DirectionalLight0.Enabled = true;
+                //basicEffectFloor.DirectionalLight0.SpecularColor = new Vector3(1.3f, 1.3f, 1.3f);
+                device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FloorVertices, 0, arena.FloorVertices.Length, arena.FloorIndices, 0, arena.FloorIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
+            }
+            foreach (EffectPass pass2 in basicEffectCourt.CurrentTechnique.Passes)
+            {
+                pass2.Apply();
+                basicEffectCourt.LightingEnabled = true;
+                basicEffectCourt.PreferPerPixelLighting = true;
+                //basicEffectCourt.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
+                //basicEffectCourt.DirectionalLight0.Enabled = true;
+                //basicEffectCourt.DirectionalLight0.SpecularColor = new Vector3(1.3f, 1.3f, 1.3f);
+                //PointLightMaterial mat = new PointLightMaterial();
+                //mat.LightPosition = new Vector3(-100, 10, 0);
+                //mat.LightAttenuation = 3000;
+                //mat.SetEffectParameters(effect);
+                //simpleEffect.Parameters["BasicTexture"].SetValue(arena.CourtTexture);
+                //simpleEffect.Parameters["TextureEnabled"].SetValue(true);
+                device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FieldVertices, 0, arena.FieldVertices.Length, arena.FieldIndices, 0, arena.FieldIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
             }
             base.Draw(gameTime);
         }
 
+        private void DrawModelFbx(Matrix currentViewMatrix, Vector3 Translation, Model model, float f, Vector3 rotation = new Vector3())
+        {
+            Matrix worldMatrix = Matrix.CreateScale(f, f, f) *
+                                 Matrix.Identity * Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateRotationZ(rotation.Z);
+            worldMatrix = worldMatrix * Matrix.CreateTranslation(Translation);
+            // pos,rot,scl
+            Matrix[] shipTransforms = new Matrix[model.Bones.Count];
+            model.CopyAbsoluteBoneTransformsTo(shipTransforms);
+            foreach (ModelMesh mesh in model.Meshes)
+            {
+                foreach (BasicEffect currentEffect in mesh.Effects)
+                {
+                    currentEffect.World = worldMatrix;
+                    currentEffect.View = currentViewMatrix;
+                    currentEffect.Projection = projectionMatrix;
+                    currentEffect.LightingEnabled = true;
+                }
+                mesh.Draw();
+            }
+        }
+
         private Vector3 toRotateV = new Vector3(0, 10, 100);
-        private Vector3 position = new Vector3(100, 0, 0);
+        private Vector3 position = new Vector3(1300, -500, 10);
         private Vector3 lookAt = new Vector3(5, 10, 0);
         private void SetUpCamera()
         {
             viewMatrix = Matrix.CreateLookAt(position, lookAt, new Vector3(0, 1, 0));
-            //viewMatrix = Matrix.CreateLookAt(new Vector3(0, 300, 1000), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
             projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, device.Viewport.AspectRatio, 1.0f, 10000.0f);
         }
 
