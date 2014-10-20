@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -14,11 +15,11 @@ namespace GK3D1
         private ContentManager content;
         private Effect effect;
 
-        public ObjectModel(ContentManager content, Effect effect)
+        public ObjectModel(ContentManager content, Effect effect, string model)
         {
             this.content = content;
             this.effect = effect;
-            Model = content.Load<Model>("umpire");
+            Model = content.Load<Model>(model);
             Textures = new Texture2D[30];
             int i = 0;
             foreach (ModelMesh mesh in Model.Meshes)

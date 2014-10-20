@@ -32,9 +32,8 @@ namespace GK3D1
         private float verticalAngle = 0f;
         private VertexPositionColorNormal[] axis;
         private int[] axisIndices;
-        float leftrightRot = MathHelper.PiOver2;
-        float updownRot = 0;
-        float thirdRot = 0;
+        float yaw = MathHelper.PiOver2;
+        float pitch = 0;
         const float rotationSpeed = 0.3f;
         const float moveSpeed = 800.0f;
         MouseState originalMouseState;
@@ -97,33 +96,15 @@ namespace GK3D1
             arena.Bench = new Bench(Content, new BasicEffect(device));
             Mouse.SetPosition(device.Viewport.Width / 2, device.Viewport.Height / 2);
             originalMouseState = Mouse.GetState();
-            axis = new VertexPositionColorNormal[6];
-            axis[0].Position = new Vector3(-1000, 0, 0);
-            axis[0].Color = Color.Green;
-            axis[1].Position = new Vector3(1000, 0, 0);
-            axis[1].Color = Color.Green;
-            axis[2].Position = new Vector3(0, -1000, 0);
-            axis[2].Color = Color.Blue;
-            axis[3].Position = new Vector3(0, 1000, 0);
-            axis[3].Color = Color.Blue;
-            axis[4].Position = new Vector3(0, 0, -1000);
-            axis[4].Color = Color.Orange;
-            axis[5].Position = new Vector3(0, 0, 1000);
-            axis[5].Color = Color.Orange;
-
-            axisIndices = new int[6];
-            axisIndices[0] = 0;
-            axisIndices[1] = 1;
-            axisIndices[2] = 2;
-            axisIndices[3] = 3;
-            axisIndices[4] = 4;
-            axisIndices[5] = 5;
+            ShowAxis();
 
             SetUpCamera();
             CalculateNormals(arena.Vertices, arena.Indices);
-            //CalculateNormals(arena.FieldVertices, arena.FieldIndices);
-
-            // TODO: use this.Content to load your game content here
+            arena.CalculateNormals(arena.FieldVertices, arena.FieldIndices);
+            arena.CalculateNormals(arena.FloorVertices, arena.FloorIndices);
+            CalculateNormals(arena.Net.Vertices, arena.Net.Indices);
+            CalculateNormals(arena.LeftPost.Vertices, arena.LeftPost.Indices);
+            CalculateNormals(arena.RightPost.Vertices, arena.RightPost.Indices);
         }
 
         /// <summary>
@@ -167,8 +148,8 @@ namespace GK3D1
             {
                 float xDifference = currentMouseState.X - originalMouseState.X;
                 float yDifference = currentMouseState.Y - originalMouseState.Y;
-                leftrightRot -= rotationSpeed * xDifference * amount;
-                updownRot -= rotationSpeed * yDifference * amount;
+                yaw -= rotationSpeed * xDifference * amount;
+                pitch -= rotationSpeed * yDifference * amount;
                 Mouse.SetPosition(device.Viewport.Width / 2, device.Viewport.Height / 2);
                 UpdateViewMatrix();
             }
@@ -196,7 +177,7 @@ namespace GK3D1
 
         private void AddToCameraPosition(Vector3 vectorToAdd)
         {
-            Matrix cameraRotation = Matrix.CreateRotationX(updownRot) * Matrix.CreateRotationY(leftrightRot);
+            Matrix cameraRotation = Matrix.CreateRotationX(pitch) * Matrix.CreateRotationY(yaw);
             Vector3 rotatedVector = Vector3.Transform(vectorToAdd, cameraRotation);
             position += moveSpeed * rotatedVector;
             UpdateViewMatrix();
@@ -204,7 +185,7 @@ namespace GK3D1
 
         private void UpdateViewMatrix()
         {
-            var cameraRotationMatrix = Matrix.CreateRotationX(updownRot) * Matrix.CreateRotationY(leftrightRot);
+            var cameraRotationMatrix = Matrix.CreateRotationX(pitch) * Matrix.CreateRotationY(yaw);
 
             var cameraOriginalTargetVector = new Vector3(0, 0, -1);
             var cameraOriginalUpVector = new Vector3(0, 1, 0);
@@ -221,7 +202,7 @@ namespace GK3D1
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.LightBlue);
+            device.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1.0f, 0);
             //RasterizerState rs = new RasterizerState();
 
             worldMatrix = Matrix.Identity;
@@ -245,12 +226,11 @@ namespace GK3D1
                     arena.LeftPost.Indices, 0, arena.LeftPost.Indices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
                 device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.RightPost.Vertices, 0, arena.RightPost.Vertices.Length,
                     arena.RightPost.Indices, 0, arena.RightPost.Indices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
-                //device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FieldVertices, 0, arena.FieldVertices.Length, arena.FieldIndices, 0, arena.FieldIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
                 device.DrawUserIndexedPrimitives(PrimitiveType.LineList, axis, 0, axis.Length, axisIndices, 0, 3,
                     VertexPositionColorNormal.VertexDeclaration);
             }
-            
-            DrawModelFbx(viewMatrix, new Vector3(-600, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0,300,0));
+
+            DrawModelFbx(viewMatrix, new Vector3(-600, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
             DrawModelFbx(viewMatrix, new Vector3(-150, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
             DrawModelFbx(viewMatrix, new Vector3(250, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
             DrawModelFbx(viewMatrix, new Vector3(700, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
@@ -264,10 +244,9 @@ namespace GK3D1
                 pass2.Apply();
                 basicEffectFloor.LightingEnabled = true;
                 basicEffectFloor.PreferPerPixelLighting = true;
-                //basicEffectFloor.PreferPerPixelLighting = true;
-                //basicEffectFloor.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
-                // basicEffectFloor.DirectionalLight0.Enabled = true;
-                //basicEffectFloor.DirectionalLight0.SpecularColor = new Vector3(1.3f, 1.3f, 1.3f);
+                basicEffectFloor.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
+                basicEffectFloor.DirectionalLight0.Enabled = true;
+                basicEffectFloor.DirectionalLight0.SpecularColor = new Vector3(0.5f, 0.5f, 0.5f);
                 device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FloorVertices, 0, arena.FloorVertices.Length, arena.FloorIndices, 0, arena.FloorIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
             }
             foreach (EffectPass pass2 in basicEffectCourt.CurrentTechnique.Passes)
@@ -275,15 +254,9 @@ namespace GK3D1
                 pass2.Apply();
                 basicEffectCourt.LightingEnabled = true;
                 basicEffectCourt.PreferPerPixelLighting = true;
-                //basicEffectCourt.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
-                //basicEffectCourt.DirectionalLight0.Enabled = true;
-                //basicEffectCourt.DirectionalLight0.SpecularColor = new Vector3(1.3f, 1.3f, 1.3f);
-                //PointLightMaterial mat = new PointLightMaterial();
-                //mat.LightPosition = new Vector3(-100, 10, 0);
-                //mat.LightAttenuation = 3000;
-                //mat.SetEffectParameters(effect);
-                //simpleEffect.Parameters["BasicTexture"].SetValue(arena.CourtTexture);
-                //simpleEffect.Parameters["TextureEnabled"].SetValue(true);
+                basicEffectCourt.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
+                basicEffectCourt.DirectionalLight0.Enabled = true;
+                basicEffectCourt.DirectionalLight0.SpecularColor = new Vector3(1f, 1f, 1f);
                 device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FieldVertices, 0, arena.FieldVertices.Length, arena.FieldIndices, 0, arena.FieldIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
             }
             base.Draw(gameTime);
@@ -310,16 +283,15 @@ namespace GK3D1
             }
         }
 
-        private Vector3 toRotateV = new Vector3(0, 10, 100);
         private Vector3 position = new Vector3(1300, -500, 10);
-        private Vector3 lookAt = new Vector3(5, 10, 0);
+        private Vector3 lookAt = new Vector3(5, 10, -300);
         private void SetUpCamera()
         {
             viewMatrix = Matrix.CreateLookAt(position, lookAt, new Vector3(0, 1, 0));
             projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, device.Viewport.AspectRatio, 1.0f, 10000.0f);
         }
 
-        private void CalculateNormals(VertexPositionColorNormal[] vertices, int[] indices)
+        private void CalculateNormals(Game1.VertexPositionColorNormal[] vertices, int[] indices)
         {
             for (int i = 0; i < vertices.Length; i++)
                 vertices[i].Normal = new Vector3(0, 0, 0);
@@ -341,6 +313,31 @@ namespace GK3D1
 
             for (int i = 0; i < vertices.Length; i++)
                 vertices[i].Normal.Normalize();
+        }
+
+        private void ShowAxis()
+        {
+            axis = new VertexPositionColorNormal[6];
+            axis[0].Position = new Vector3(-1000, 0, 0);
+            axis[0].Color = Color.Green;
+            axis[1].Position = new Vector3(1000, 0, 0);
+            axis[1].Color = Color.Green;
+            axis[2].Position = new Vector3(0, -1000, 0);
+            axis[2].Color = Color.Blue;
+            axis[3].Position = new Vector3(0, 1000, 0);
+            axis[3].Color = Color.Blue;
+            axis[4].Position = new Vector3(0, 0, -1000);
+            axis[4].Color = Color.Orange;
+            axis[5].Position = new Vector3(0, 0, 1000);
+            axis[5].Color = Color.Orange;
+
+            axisIndices = new int[6];
+            axisIndices[0] = 0;
+            axisIndices[1] = 1;
+            axisIndices[2] = 2;
+            axisIndices[3] = 3;
+            axisIndices[4] = 4;
+            axisIndices[5] = 5;
         }
     }
 }
