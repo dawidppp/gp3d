@@ -1,1 +1,2 @@
 c:\users\karolina\documents\visual studio 2010\Projects\GK3D1\GK3D1\GK3D1Content\obj\x86\Debug\GK3D1Content.contentprojResolveAssemblyReference.cache
+C:\Users\Karolina\Documents\Visual Studio 2010\Projects\gk3d\GK3D1\GK3D1Content\obj\x86\Debug\GK3D1Content.contentprojResolveAssemblyReference.cache

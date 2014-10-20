@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace GK3D1
@@ -12,22 +13,43 @@ namespace GK3D1
         public int Width { get; private set; }
         public int Height { get; private set; }
         public int Depth { get; private set; }
+        public Texture2D CourtTexture { get; set; }
+        public Texture2D FloorTexture { get; set; }
+
 
         public Game1.VertexPositionColorNormal[] Vertices { get; private set; }
         public int[] Indices { get; private set; }
 
-        public Game1.VertexPositionColorNormal[] FieldVertices { get; private set; }
+        public Cuboid Net { get; set; }
+        public Cuboid LeftPost { get; set; }
+        public Cuboid RightPost { get; set; }
+        public Bench Bench { get; set; }
+        public ObjectModel UmpireChairs { get; set; }
+
+        public VertexPositionNormalTexture[] FieldVertices { get; private set; }
         public int[] FieldIndices { get; private set; }
 
-        public Arena()
+        public VertexPositionNormalTexture[] FloorVertices { get; private set; }
+        public int[] FloorIndices { get; private set; }
+
+        private ContentManager contentManager;
+
+        public Arena(ContentManager contentManager)
         {
-            Width = 600;
-            Depth = 400;
-            Height = 400;
+            Width = 7200;
+            Depth = 4800;
+            Height = 2000;
             SetUpVertices();
             //SetUpOuterIndices();
             SetUpInnerIndices();
+            this.contentManager = contentManager;
+            CourtTexture = contentManager.Load<Texture2D>("court");
+            FloorTexture = contentManager.Load<Texture2D>("floor");
             SetField();
+            SetFloor();
+            Net = new Cuboid(new Vector3(0, -780, 0), 5, 100, 700, false, true, Color.LightGray);
+            LeftPost = new Cuboid(new Vector3(0, -850, 350), 10, 300, 10, false, true, Color.LightGray);
+            RightPost = new Cuboid(new Vector3(0, -850, -350), 10, 300, 10, false, true, Color.LightGray);
         }
 
         public void SetUpVertices()
@@ -113,15 +135,19 @@ namespace GK3D1
 
         private void SetField()
         {
-            FieldVertices = new Game1.VertexPositionColorNormal[4];
-            FieldVertices[0].Position = new Vector3(-120, -Height / 2 + 1, 75);
-            FieldVertices[0].Color = Color.Yellow;
-            FieldVertices[1].Position = new Vector3(120, -Height / 2 + 1, 75);
-            FieldVertices[1].Color = Color.Yellow;
-            FieldVertices[2].Position = new Vector3(120, -Height / 2 + 1, -75);
-            FieldVertices[2].Color = Color.Yellow;
-            FieldVertices[3].Position = new Vector3(-120, -Height / 2 + 1, -75);
-            FieldVertices[3].Color = Color.Yellow;
+            FieldVertices = new VertexPositionNormalTexture[4];
+            FieldVertices[0].Position = new Vector3(-1000, -Height / 2 + 2, 500);
+            FieldVertices[0].TextureCoordinate = new Vector2(0,0);
+            //FieldVertices[0].Color = Color.Yellow;
+            FieldVertices[1].Position = new Vector3(1000, -Height / 2 + 2, 500);
+            FieldVertices[1].TextureCoordinate = new Vector2(0,1);
+            //FieldVertices[1].Color = Color.Yellow;
+            FieldVertices[2].Position = new Vector3(1000, -Height / 2 + 2, -500);
+            FieldVertices[2].TextureCoordinate = new Vector2(1,1);
+            //FieldVertices[2].Color = Color.Yellow;
+            FieldVertices[3].Position = new Vector3(-1000, -Height / 2 + 2, -500);
+            FieldVertices[3].TextureCoordinate = new Vector2(1,0);
+            //FieldVertices[3].Color = Color.Yellow;
 
             FieldIndices = new int[6];
             FieldIndices[0] = 0;
@@ -130,6 +156,55 @@ namespace GK3D1
             FieldIndices[3] = 0;
             FieldIndices[4] = 3;
             FieldIndices[5] = 2;
+
+            CalculateNormals(FieldVertices, FieldIndices);
+        }
+
+        private void SetFloor()
+        {
+            FloorVertices = new VertexPositionNormalTexture[4];
+            FloorVertices[0].Position = Vertices[0].Position + new Vector3(0,1,0);
+            FloorVertices[0].TextureCoordinate = new Vector2(0, 0);
+            FloorVertices[1].Position = Vertices[1].Position + new Vector3(0, 1, 0);
+            FloorVertices[1].TextureCoordinate = new Vector2(0, 1);
+            FloorVertices[2].Position = Vertices[2].Position + new Vector3(0, 1, 0);
+            FloorVertices[2].TextureCoordinate = new Vector2(1, 1);
+            FloorVertices[3].Position = Vertices[3].Position + new Vector3(0, 1, 0);
+            FloorVertices[3].TextureCoordinate = new Vector2(1, 0);
+
+            FloorIndices = new int[6];
+            FloorIndices[0] = 0;
+            FloorIndices[1] = 2;
+            FloorIndices[2] = 1;
+            FloorIndices[3] = 0;
+            FloorIndices[4] = 3;
+            FloorIndices[5] = 2;
+
+            CalculateNormals(FloorVertices, FloorIndices);
+        }
+
+        private void CalculateNormals(VertexPositionNormalTexture[] vertices, int[] indices)
+        {
+            for (int i = 0; i < vertices.Length; i++)
+                vertices[i].Normal = new Vector3(0, 0, 0);
+
+            for (int i = 0; i < indices.Length / 3; i++)
+            {
+                int index1 = indices[i * 3];
+                int index2 = indices[i * 3 + 1];
+                int index3 = indices[i * 3 + 2];
+
+                Vector3 side1 = vertices[index1].Position - vertices[index3].Position;
+                Vector3 side2 = vertices[index1].Position - vertices[index2].Position;
+                Vector3 normal = Vector3.Cross(side1, side2);
+
+                vertices[index1].Normal += normal;
+                vertices[index2].Normal += normal;
+                vertices[index3].Normal += normal;
+            }
+
+            for (int i = 0; i < vertices.Length; i++)
+                vertices[i].Normal.Normalize();
         }
     }
 }
