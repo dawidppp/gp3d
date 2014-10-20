@@ -183,7 +183,7 @@ namespace GK3D1
             CalculateNormals(FloorVertices, FloorIndices);
         }
 
-        private void CalculateNormals(VertexPositionNormalTexture[] vertices, int[] indices)
+        public void CalculateNormals(VertexPositionNormalTexture[] vertices, int[] indices)
         {
             for (int i = 0; i < vertices.Length; i++)
                 vertices[i].Normal = new Vector3(0, 0, 0);
