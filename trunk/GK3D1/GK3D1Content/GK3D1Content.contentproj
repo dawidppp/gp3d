@@ -116,6 +116,16 @@
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
     </Compile>
+    <Compile Include="LightEffect.fx">
+      <Name>LightEffect</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+    <Compile Include="ManySpotLightEffect.fx">
+      <Name>ManySpotLightEffect</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
     <Content Include="qjrh1cav.jpg">
       <Name>qjrh1cav</Name>
       <Importer>TextureImporter</Importer>
