@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using Tutorial_book;
 
 namespace GK3D1
 {
@@ -40,6 +41,8 @@ namespace GK3D1
         Matrix worldMatrix;
         bool MouseEnable = true;
         private Effect simpleEffect;
+        private SpotLightMaterial spotLightMat;
+        private Effect spotLightEffect;
 
         public struct VertexPositionColorNormal
         {
@@ -72,7 +75,6 @@ namespace GK3D1
             graphics.PreferredBackBufferWidth = 500;
             graphics.PreferredBackBufferHeight = 500;
             graphics.IsFullScreen = false;
-            graphics.ApplyChanges();
             Window.Title = "Volleyball Arena";
             //IsMouseVisible = true;
 
@@ -98,10 +100,20 @@ namespace GK3D1
             originalMouseState = Mouse.GetState();
             ShowAxis();
 
+            spotLightEffect = Content.Load<Effect>("SpotLightEffect");
+            spotLightMat = new SpotLightMaterial();
+            spotLightMat.LightDirection = new Vector3(0, -1, 0);
+            spotLightMat.LightPosition = new Vector3(0, 0, 0);
+            spotLightMat.LightFalloff = 200;
+            spotLightMat.ConeAngle = 50f;
+            spotLightMat.SetEffectParameters(spotLightEffect);
+            setEffectParameter(spotLightEffect, "BasicTexture", arena.CourtTexture);
+            setEffectParameter(spotLightEffect, "TextureEnabled", true);
+
             SetUpCamera();
             CalculateNormals(arena.Vertices, arena.Indices);
             arena.CalculateNormals(arena.FieldVertices, arena.FieldIndices);
-            arena.CalculateNormals(arena.FloorVertices, arena.FloorIndices);
+            //arena.CalculateNormals(arena.FloorVertices, arena.FloorIndices);
             CalculateNormals(arena.Net.Vertices, arena.Net.Indices);
             CalculateNormals(arena.LeftPost.Vertices, arena.LeftPost.Indices);
             CalculateNormals(arena.RightPost.Vertices, arena.RightPost.Indices);
@@ -202,7 +214,7 @@ namespace GK3D1
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            device.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1.0f, 0);
+            //device.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1.0f, 0);
             //RasterizerState rs = new RasterizerState();
 
             worldMatrix = Matrix.Identity;
@@ -238,25 +250,32 @@ namespace GK3D1
             DrawModelFbx(viewMatrix, new Vector3(-150, -970, -500), arena.Bench.BenchModel, 1f, new Vector3(0, -300, 0));
             DrawModelFbx(viewMatrix, new Vector3(250, -970, -500), arena.Bench.BenchModel, 1f, new Vector3(0, -300, 0));
             DrawModelFbx(viewMatrix, new Vector3(700, -970, -500), arena.Bench.BenchModel, 1f, new Vector3(0, -300, 0));
-
-            foreach (EffectPass pass2 in basicEffectFloor.CurrentTechnique.Passes)
+            
+            //foreach (EffectPass pass2 in basicEffectFloor.CurrentTechnique.Passes)
+            //{
+            //    pass2.Apply();
+            //    basicEffectFloor.LightingEnabled = true;
+            //    basicEffectFloor.PreferPerPixelLighting = true;
+            //    basicEffectFloor.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
+            //    basicEffectFloor.DirectionalLight0.Enabled = true;
+            //    basicEffectFloor.DirectionalLight0.SpecularColor = new Vector3(0.5f, 0.5f, 0.5f);
+            //    device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FloorVertices, 0, arena.FloorVertices.Length, arena.FloorIndices, 0, arena.FloorIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
+            //}
+            
+            foreach (EffectPass pass in spotLightEffect.CurrentTechnique.Passes)
             {
-                pass2.Apply();
-                basicEffectFloor.LightingEnabled = true;
-                basicEffectFloor.PreferPerPixelLighting = true;
-                basicEffectFloor.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
-                basicEffectFloor.DirectionalLight0.Enabled = true;
-                basicEffectFloor.DirectionalLight0.SpecularColor = new Vector3(0.5f, 0.5f, 0.5f);
-                device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FloorVertices, 0, arena.FloorVertices.Length, arena.FloorIndices, 0, arena.FloorIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
-            }
-            foreach (EffectPass pass2 in basicEffectCourt.CurrentTechnique.Passes)
-            {
-                pass2.Apply();
-                basicEffectCourt.LightingEnabled = true;
-                basicEffectCourt.PreferPerPixelLighting = true;
-                basicEffectCourt.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
-                basicEffectCourt.DirectionalLight0.Enabled = true;
-                basicEffectCourt.DirectionalLight0.SpecularColor = new Vector3(1f, 1f, 1f);
+                pass.Apply();
+                setEffectParameter(spotLightEffect, "World", worldMatrix);
+                setEffectParameter(spotLightEffect, "View", viewMatrix);
+                setEffectParameter(spotLightEffect, "Projection", projectionMatrix);
+                //setEffectParameter(spotLightEffect, "CameraPosition", position);
+                 
+                //basicEffectCourt.LightingEnabled = true;
+                //basicEffectCourt.PreferPerPixelLighting = true;
+                //basicEffectCourt.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
+                //basicEffectCourt.DirectionalLight0.Enabled = true;
+                //basicEffectCourt.DirectionalLight0.SpecularColor = new Vector3(1f, 1f, 1f);
+                //device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FloorVertices, 0, arena.FloorVertices.Length, arena.FloorIndices, 0, arena.FloorIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
                 device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FieldVertices, 0, arena.FieldVertices.Length, arena.FieldIndices, 0, arena.FieldIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
             }
             base.Draw(gameTime);
@@ -338,6 +357,20 @@ namespace GK3D1
             axisIndices[3] = 3;
             axisIndices[4] = 4;
             axisIndices[5] = 5;
+        }
+
+        void setEffectParameter(Effect effect, string paramName, object val)
+        {
+            if (effect.Parameters[paramName] == null)
+                return;
+            if (val is Vector3)
+                effect.Parameters[paramName].SetValue((Vector3)val);
+            else if (val is bool)
+                effect.Parameters[paramName].SetValue((bool)val);
+            else if (val is Matrix)
+                effect.Parameters[paramName].SetValue((Matrix)val);
+            else if (val is Texture2D)
+                effect.Parameters[paramName].SetValue((Texture2D)val);
         }
     }
 }
