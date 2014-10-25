@@ -112,10 +112,13 @@
   <ItemGroup>
     <Compile Include="Arena.cs" />
     <Compile Include="Bench.cs" />
+    <Compile Include="Camera.cs" />
     <Compile Include="Cuboid.cs" />
+    <Compile Include="FreeCamera.cs" />
     <Compile Include="Material.cs" />
+    <Compile Include="MultipleLightingMaterial.cs" />
     <Compile Include="ObjectModel.cs" />
-    <Compile Include="PointLightMaterialcs.cs" />
+    <Compile Include="PointLightMaterial.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Game1.cs" />

@@ -47,30 +47,31 @@ namespace GK3D1
             FloorTexture = contentManager.Load<Texture2D>("floor");
             SetField();
             SetFloor();
-            Net = new Cuboid(new Vector3(0, -780, 0), 5, 100, 700, false, true, Color.LightGray);
-            LeftPost = new Cuboid(new Vector3(0, -850, 350), 10, 300, 10, false, true, Color.LightGray);
-            RightPost = new Cuboid(new Vector3(0, -850, -350), 10, 300, 10, false, true, Color.LightGray);
+            Net = new Cuboid(new Vector3(0, -780, 0), 5, 100, 700, false, true, Color.Green);
+            LeftPost = new Cuboid(new Vector3(0, -850, 350), 10, 300, 10, false, true, Color.Green);
+            RightPost = new Cuboid(new Vector3(0, -850, -350), 10, 300, 10, false, true, Color.Green);
         }
 
         public void SetUpVertices()
         {
             Vertices = new Game1.VertexPositionColorNormal[8];
-            Vertices[0].Position = new Vector3(-Width / 2, -Height / 2, Depth / 2);
+            var minus = 100;
+            Vertices[0].Position = new Vector3(-Width / 2, -Height / 2 - minus, Depth / 2);
             Vertices[0].Color = Color.DarkOrange;
-            Vertices[1].Position = new Vector3(Width / 2, -Height / 2, Depth / 2);
+            Vertices[1].Position = new Vector3(Width / 2, -Height / 2 - minus, Depth / 2);
             Vertices[1].Color = Color.DarkOrange;
-            Vertices[2].Position = new Vector3(Width / 2, -Height / 2, -Depth / 2);
+            Vertices[2].Position = new Vector3(Width / 2, -Height / 2 - minus, -Depth / 2);
             Vertices[2].Color = Color.DarkOrange;
-            Vertices[3].Position = new Vector3(-Width / 2, -Height / 2, -Depth / 2);
+            Vertices[3].Position = new Vector3(-Width / 2, -Height / 2 - minus, -Depth / 2);
             Vertices[3].Color = Color.DarkOrange;
 
-            Vertices[4].Position = new Vector3(-Width / 2, Height / 2, Depth / 2);
+            Vertices[4].Position = new Vector3(-Width / 2, Height / 2 - minus, Depth / 2);
             Vertices[4].Color = Color.DarkOrange;
-            Vertices[5].Position = new Vector3(Width / 2, Height / 2, Depth / 2);
+            Vertices[5].Position = new Vector3(Width / 2, Height / 2 - minus, Depth / 2);
             Vertices[5].Color = Color.DarkOrange;
-            Vertices[6].Position = new Vector3(Width / 2, Height / 2, -Depth / 2);
+            Vertices[6].Position = new Vector3(Width / 2, Height / 2 - minus, -Depth / 2);
             Vertices[6].Color = Color.DarkOrange;
-            Vertices[7].Position = new Vector3(-Width / 2, Height / 2, -Depth / 2);
+            Vertices[7].Position = new Vector3(-Width / 2, Height / 2 - minus, -Depth / 2);
             Vertices[7].Color = Color.DarkOrange;
         }
 
@@ -136,16 +137,16 @@ namespace GK3D1
         private void SetField()
         {
             FieldVertices = new VertexPositionNormalTexture[4];
-            FieldVertices[0].Position = new Vector3(-1000, -Height / 2 + 50, 500);
+            FieldVertices[0].Position = new Vector3(-1000, -Height / 2 + 2, 500);
             FieldVertices[0].TextureCoordinate = new Vector2(0,0);
             //FieldVertices[0].Color = Color.Yellow;
-            FieldVertices[1].Position = new Vector3(1000, -Height / 2 + 50, 500);
+            FieldVertices[1].Position = new Vector3(1000, -Height / 2 + 2, 500);
             FieldVertices[1].TextureCoordinate = new Vector2(0,1);
             //FieldVertices[1].Color = Color.Yellow;
-            FieldVertices[2].Position = new Vector3(1000, -Height / 2 + 50, -500);
+            FieldVertices[2].Position = new Vector3(1000, -Height / 2 + 2, -500);
             FieldVertices[2].TextureCoordinate = new Vector2(1,1);
             //FieldVertices[2].Color = Color.Yellow;
-            FieldVertices[3].Position = new Vector3(-1000, -Height / 2 + 50, -500);
+            FieldVertices[3].Position = new Vector3(-1000, -Height / 2 + 2, -500);
             FieldVertices[3].TextureCoordinate = new Vector2(1,0);
             //FieldVertices[3].Color = Color.Yellow;
 
@@ -163,13 +164,13 @@ namespace GK3D1
         private void SetFloor()
         {
             FloorVertices = new VertexPositionNormalTexture[4];
-            FloorVertices[0].Position = Vertices[0].Position + new Vector3(0,1,0);
+            FloorVertices[0].Position = Vertices[0].Position + new Vector3(0, 60,0);
             FloorVertices[0].TextureCoordinate = new Vector2(0, 0);
-            FloorVertices[1].Position = Vertices[1].Position + new Vector3(0, 1, 0);
+            FloorVertices[1].Position = Vertices[1].Position + new Vector3(0, 60, 0);
             FloorVertices[1].TextureCoordinate = new Vector2(0, 1);
-            FloorVertices[2].Position = Vertices[2].Position + new Vector3(0, 1, 0);
+            FloorVertices[2].Position = Vertices[2].Position + new Vector3(0, 60, 0);
             FloorVertices[2].TextureCoordinate = new Vector2(1, 1);
-            FloorVertices[3].Position = Vertices[3].Position + new Vector3(0, 1, 0);
+            FloorVertices[3].Position = Vertices[3].Position + new Vector3(0, 60, 0);
             FloorVertices[3].TextureCoordinate = new Vector2(1, 0);
 
             FloorIndices = new int[6];
