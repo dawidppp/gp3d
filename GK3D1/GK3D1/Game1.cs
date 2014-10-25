@@ -214,7 +214,7 @@ namespace GK3D1
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            //device.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1.0f, 0);
+            device.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1.0f, 0);
             //RasterizerState rs = new RasterizerState();
 
             worldMatrix = Matrix.Identity;
@@ -227,6 +227,7 @@ namespace GK3D1
             effect.Parameters["xLightDirection"].SetValue(lightDirection);
             effect.Parameters["xAmbient"].SetValue(0.4f);
             effect.Parameters["xEnableLighting"].SetValue(true);
+
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
@@ -250,17 +251,17 @@ namespace GK3D1
             DrawModelFbx(viewMatrix, new Vector3(-150, -970, -500), arena.Bench.BenchModel, 1f, new Vector3(0, -300, 0));
             DrawModelFbx(viewMatrix, new Vector3(250, -970, -500), arena.Bench.BenchModel, 1f, new Vector3(0, -300, 0));
             DrawModelFbx(viewMatrix, new Vector3(700, -970, -500), arena.Bench.BenchModel, 1f, new Vector3(0, -300, 0));
-            
-            //foreach (EffectPass pass2 in basicEffectFloor.CurrentTechnique.Passes)
-            //{
-            //    pass2.Apply();
-            //    basicEffectFloor.LightingEnabled = true;
-            //    basicEffectFloor.PreferPerPixelLighting = true;
-            //    basicEffectFloor.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
-            //    basicEffectFloor.DirectionalLight0.Enabled = true;
-            //    basicEffectFloor.DirectionalLight0.SpecularColor = new Vector3(0.5f, 0.5f, 0.5f);
-            //    device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FloorVertices, 0, arena.FloorVertices.Length, arena.FloorIndices, 0, arena.FloorIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
-            //}
+
+            foreach (EffectPass pass2 in basicEffectFloor.CurrentTechnique.Passes)
+            {
+                pass2.Apply();
+                basicEffectFloor.LightingEnabled = true;
+                basicEffectFloor.PreferPerPixelLighting = true;
+                basicEffectFloor.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
+                basicEffectFloor.DirectionalLight0.Enabled = true;
+                basicEffectFloor.DirectionalLight0.SpecularColor = new Vector3(0.5f, 0.5f, 0.5f);
+                device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FloorVertices, 0, arena.FloorVertices.Length, arena.FloorIndices, 0, arena.FloorIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
+            }
             
             foreach (EffectPass pass in spotLightEffect.CurrentTechnique.Passes)
             {
@@ -268,14 +269,7 @@ namespace GK3D1
                 setEffectParameter(spotLightEffect, "World", worldMatrix);
                 setEffectParameter(spotLightEffect, "View", viewMatrix);
                 setEffectParameter(spotLightEffect, "Projection", projectionMatrix);
-                //setEffectParameter(spotLightEffect, "CameraPosition", position);
-                 
-                //basicEffectCourt.LightingEnabled = true;
-                //basicEffectCourt.PreferPerPixelLighting = true;
-                //basicEffectCourt.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
-                //basicEffectCourt.DirectionalLight0.Enabled = true;
-                //basicEffectCourt.DirectionalLight0.SpecularColor = new Vector3(1f, 1f, 1f);
-                //device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FloorVertices, 0, arena.FloorVertices.Length, arena.FloorIndices, 0, arena.FloorIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
+
                 device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FieldVertices, 0, arena.FieldVertices.Length, arena.FieldIndices, 0, arena.FieldIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
             }
             base.Draw(gameTime);
