@@ -136,16 +136,16 @@ namespace GK3D1
         private void SetField()
         {
             FieldVertices = new VertexPositionNormalTexture[4];
-            FieldVertices[0].Position = new Vector3(-1000, -Height / 2 + 5, 500);
+            FieldVertices[0].Position = new Vector3(-1000, -Height / 2 + 50, 500);
             FieldVertices[0].TextureCoordinate = new Vector2(0,0);
             //FieldVertices[0].Color = Color.Yellow;
-            FieldVertices[1].Position = new Vector3(1000, -Height / 2 + 5, 500);
+            FieldVertices[1].Position = new Vector3(1000, -Height / 2 + 50, 500);
             FieldVertices[1].TextureCoordinate = new Vector2(0,1);
             //FieldVertices[1].Color = Color.Yellow;
-            FieldVertices[2].Position = new Vector3(1000, -Height / 2 + 5, -500);
+            FieldVertices[2].Position = new Vector3(1000, -Height / 2 + 50, -500);
             FieldVertices[2].TextureCoordinate = new Vector2(1,1);
             //FieldVertices[2].Color = Color.Yellow;
-            FieldVertices[3].Position = new Vector3(-1000, -Height / 2 + 5, -500);
+            FieldVertices[3].Position = new Vector3(-1000, -Height / 2 + 50, -500);
             FieldVertices[3].TextureCoordinate = new Vector2(1,0);
             //FieldVertices[3].Color = Color.Yellow;
 
