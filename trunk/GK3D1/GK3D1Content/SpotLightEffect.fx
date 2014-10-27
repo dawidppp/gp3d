@@ -5,7 +5,7 @@ float3 AmbientLightColor = float3(.15, .15, .15);
 float3 DiffuseColor = float3(.85, .85, .85);
 float3 LightPosition = float3(0, 5000, 0);
 float3 LightDirection = float3(0, -1, 0);
-float ConeAngle = 90;
+float ConeAngle = 20;
 float3 LightColor = float3(1, 1, 1);
 float LightFalloff = 20;
 texture BasicTexture;

@@ -46,15 +46,18 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	float3 diffuseColor = DiffuseColor;
 	if (TextureEnabled)
-	diffuseColor *= tex2D(BasicTextureSampler, input.UV).rgb;
+		diffuseColor *= tex2D(BasicTextureSampler, input.UV).rgb;
+
 	float3 totalLight = float3(0, 0, 0);
 	totalLight += AmbientLightColor;
+
 	float3 lightDir = normalize(LightPosition - input.WorldPosition);
 	float diffuse = saturate(dot(normalize(input.Normal), lightDir));
 	float d = distance(LightPosition, input.WorldPosition);
 	float att = 1 - pow(clamp(d / LightAttenuation, 0, 1),
 	LightFalloff);
 	totalLight += diffuse * att * LightColor;
+
 	return float4(diffuseColor * totalLight, 1);
 }
 

@@ -113,9 +113,11 @@
     <Compile Include="Arena.cs" />
     <Compile Include="Bench.cs" />
     <Compile Include="Camera.cs" />
+    <Compile Include="CModel.cs" />
     <Compile Include="Cuboid.cs" />
     <Compile Include="FreeCamera.cs" />
     <Compile Include="Material.cs" />
+    <Compile Include="MeshTag.cs" />
     <Compile Include="MultipleLightingMaterial.cs" />
     <Compile Include="ObjectModel.cs" />
     <Compile Include="PointLightMaterial.cs" />
