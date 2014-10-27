@@ -15,7 +15,7 @@ namespace GK3D1
         public int Depth { get; private set; }
         public Texture2D CourtTexture { get; set; }
         public Texture2D FloorTexture { get; set; }
-
+        public List<CModel> Models { get; set; }
 
         public Game1.VertexPositionColorNormal[] Vertices { get; private set; }
         public int[] Indices { get; private set; }
@@ -47,9 +47,11 @@ namespace GK3D1
             FloorTexture = contentManager.Load<Texture2D>("floor");
             SetField();
             SetFloor();
+            Models = new List<CModel>();
             Net = new Cuboid(new Vector3(0, -780, 0), 5, 100, 700, false, true, Color.Green);
             LeftPost = new Cuboid(new Vector3(0, -850, 350), 10, 300, 10, false, true, Color.Green);
             RightPost = new Cuboid(new Vector3(0, -850, -350), 10, 300, 10, false, true, Color.Green);
+            
         }
 
         public void SetUpVertices()

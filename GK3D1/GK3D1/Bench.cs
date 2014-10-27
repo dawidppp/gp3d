@@ -20,8 +20,8 @@ namespace GK3D1
             this.content = content;
             this.effect = effect;
             //BenchModel = LoadModel("Bench", out benchTextures);
-            BenchModel = content.Load<Model>("bench3");
-            BenchTextures = new Texture2D[30];
+            BenchModel = content.Load<Model>("refereechair");
+            BenchTextures = new Texture2D[50];
             int i = 0;
             foreach (ModelMesh mesh in BenchModel.Meshes)
                 foreach (BasicEffect currentEffect in mesh.Effects)

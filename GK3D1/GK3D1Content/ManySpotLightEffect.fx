@@ -10,6 +10,9 @@ float3 LightDirection[NUMLIGHTS];
 float3 LightColor[NUMLIGHTS];
 float ConeAngle = 90;
 float LightFalloff = 20;
+float SpecularPower = 300;
+float3 CameraPosition;
+float3 SpecularColor = float3(1, 1, 1);
 texture BasicTexture;
 
 sampler BasicTextureSampler = sampler_state {
@@ -31,6 +34,7 @@ struct VertexShaderOutput
 	float2 UV : TEXCOORD0;
 	float3 Normal : TEXCOORD1;
 	float4 WorldPosition : TEXCOORD2;
+	float3 ViewDirection : TEXCOORD3;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
@@ -38,10 +42,13 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	VertexShaderOutput output;
 	float4 worldPosition = mul(input.Position, World);
 	float4 viewPosition = mul(worldPosition, View);
+
 	output.Position = mul(viewPosition, Projection);
 	output.WorldPosition = worldPosition;
+	output.ViewDirection = worldPosition - CameraPosition;
 	output.UV = input.UV;
 	output.Normal = mul(input.Normal, World);
+
 	return output;
 }
 
@@ -64,8 +71,16 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 		float a = cos(ConeAngle);
 		float att = 0;
 
+		//float3 lightDir = normalize(LightDirection);
+		float3 normal = normalize(input.Normal);
+		float3 refl = reflect(lightDir, normal);
+		float3 view = normalize(input.ViewDirection);
+
 		if (a < d)
 			att = 1 - pow(clamp(a / d, 0, 1), LightFalloff);
+
+		//specular
+		totalLight += pow(saturate(dot(refl, view)), SpecularPower) * SpecularColor;
 
 		totalLight += diffuse * att * LightColor[i];
 	}
@@ -115,7 +130,7 @@ float4 PixelShaderFunctionColor(VertexShaderOutputColor input) : COLOR0
 {
 	float3 diffuseColor = DiffuseColor;
 	//if (TextureEnabled)
-		diffuseColor *= input.Color.rgb ;
+		diffuseColor *= input.Color ;
 
 	float3 totalLight = float3(0, 0, 0);
 	totalLight += AmbientLightColor;

@@ -41,8 +41,10 @@ namespace GK3D1
         bool MouseEnable = true;
         private Effect simpleEffect;
         private SpotLightMaterial spotLightMat;
+        private PointLightMaterial pointLightMat;
         private MultiLightingMaterial manySpotLightMat;
         private Effect spotLightEffect;
+        private Effect pointLightEffect;
         private Effect spotLightEffectTextureless;
         private Effect spotLightEffectBench;
 
@@ -97,22 +99,27 @@ namespace GK3D1
             arena = new Arena(Content);
             graphics.PreferMultiSampling = true;
             graphics.ApplyChanges();
-            arena.Bench = new Bench(Content, new BasicEffect(device));
+            //arena.Bench = new Bench(Content, new BasicEffect(device));
             Mouse.SetPosition(device.Viewport.Width / 2, device.Viewport.Height / 2);
             originalMouseState = Mouse.GetState();
             ShowAxis();
 
+            arena.Models.Add(new CModel(Content.Load<Model>("parkbench"),
+                new Vector3(0, -500, -100), Vector3.Zero, new Vector3(2f), GraphicsDevice));
+            
+
+            pointLightEffect = Content.Load<Effect>("PointLightEffect");
             spotLightEffect = Content.Load<Effect>("ManySpotLightEffect");
             spotLightEffect.CurrentTechnique = spotLightEffect.Techniques["Technique1"];
             manySpotLightMat = new MultiLightingMaterial();
             manySpotLightMat.LightDirection[0] = new Vector3(1f, -1, 0);
-            manySpotLightMat.LightDirection[1] = new Vector3(-0.5f, -1, 0);
-            manySpotLightMat.LightPosition[0] = new Vector3(400, arena.Height/2 - 10, 0);
-            manySpotLightMat.LightPosition[1] = new Vector3(400, arena.Height/2 - 10, 0);
+            manySpotLightMat.LightDirection[1] = new Vector3(-1f, -10, 0);
+            manySpotLightMat.LightPosition[0] = new Vector3(400, arena.Height / 2 - 50, 0);
+            manySpotLightMat.LightPosition[1] = new Vector3(-400, arena.Height / 2 - 50, 0);
             manySpotLightMat.LightFalloff = 200;
             manySpotLightMat.ConeAngle = 90f;
             manySpotLightMat.SetEffectParameters(spotLightEffect);
-            
+
             spotLightEffectBench = spotLightEffect.Clone();
             spotLightEffectBench.CurrentTechnique = spotLightEffectBench.Techniques["Technique1"];
             spotLightEffectTextureless = spotLightEffect.Clone();
@@ -122,6 +129,12 @@ namespace GK3D1
             setEffectParameter(spotLightEffect, "TextureEnabled", true);
             setEffectParameter(spotLightEffectBench, "TextureEnabled", true);
             setEffectParameter(spotLightEffectTextureless, "TextureEnabled", false);
+
+            arena.Models[0].SetModelEffect(spotLightEffectBench, true);
+            arena.Models[0].Material = manySpotLightMat;
+            arena.Models[0].Scale = new Vector3(20);
+            arena.Models[0].Rotation = new Vector3(0, -300, 0);
+            arena.Models[0].Position = new Vector3(0, -arena.Height/2 + 50, -600);
 
             SetUpCamera();
             CalculateNormals(arena.Vertices, arena.Indices);
@@ -150,7 +163,7 @@ namespace GK3D1
         {
             float timeDifference = (float)gameTime.ElapsedGameTime.TotalMilliseconds / 1000.0f;
             ProcessInput(timeDifference);
-            
+
 
             base.Update(gameTime);
         }
@@ -245,10 +258,11 @@ namespace GK3D1
 
             foreach (EffectPass pass in spotLightEffectTextureless.CurrentTechnique.Passes)
             {
-                
+
                 setEffectParameter(spotLightEffectTextureless, "World", worldMatrix);
                 setEffectParameter(spotLightEffectTextureless, "View", viewMatrix);
                 setEffectParameter(spotLightEffectTextureless, "Projection", projectionMatrix);
+                setEffectParameter(spotLightEffectTextureless, "CameraPosition", position);
                 pass.Apply();
                 device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.Vertices, 0, arena.Vertices.Length,
                     arena.Indices, 0, arena.Indices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
@@ -262,7 +276,7 @@ namespace GK3D1
                     VertexPositionColorNormal.VertexDeclaration);
             }
 
-            
+
             //DrawModelFbx(viewMatrix, new Vector3(-150, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
             //DrawModelFbx(viewMatrix, new Vector3(250, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
             //DrawModelFbx(viewMatrix, new Vector3(700, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
@@ -279,31 +293,35 @@ namespace GK3D1
                 basicEffectFloor.DirectionalLight0.Direction = new Vector3(-1, -1, 1);
                 basicEffectFloor.DirectionalLight0.Enabled = true;
                 basicEffectFloor.DirectionalLight0.SpecularColor = new Vector3(0.5f, 0.5f, 0.5f);
-                
+
             }
-            
+
             foreach (EffectPass pass in spotLightEffect.CurrentTechnique.Passes)
             {
-                
+
                 setEffectParameter(spotLightEffect, "World", worldMatrix);
                 setEffectParameter(spotLightEffect, "View", viewMatrix);
                 setEffectParameter(spotLightEffect, "Projection", projectionMatrix);
+                setEffectParameter(spotLightEffect, "CameraPosition", position);
                 pass.Apply();
                 device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FieldVertices, 0, arena.FieldVertices.Length, arena.FieldIndices, 0, arena.FieldIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
             }
 
             foreach (EffectPass pass in spotLightEffectBench.CurrentTechnique.Passes)
             {
-                
+
                 setEffectParameter(spotLightEffectBench, "World", worldMatrix);
                 setEffectParameter(spotLightEffectBench, "View", viewMatrix);
                 setEffectParameter(spotLightEffectBench, "Projection", projectionMatrix);
+                setEffectParameter(spotLightEffectBench, "CameraPosition", position);
                 pass.Apply();
                 device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, arena.FloorVertices, 0, arena.FloorVertices.Length, arena.FloorIndices, 0, arena.FloorIndices.Length / 3, VertexPositionNormalTexture.VertexDeclaration);
-                DrawModelFbx(viewMatrix, new Vector3(-600, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
-                
+                //DrawModelFbx(viewMatrix, new Vector3(-600, -970, 500), arena.Bench.BenchModel, 1f, new Vector3(0, 300, 0));
             }
-            
+
+            foreach (CModel model in arena.Models)
+                model.Draw(viewMatrix, projectionMatrix, position);
+
             base.Draw(gameTime);
         }
 
