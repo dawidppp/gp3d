@@ -34,6 +34,7 @@ namespace GK3D1
         private int[] axisIndices;
         float yaw = MathHelper.PiOver2;
         float pitch = 0;
+        float roll = 0;
         const float rotationSpeed = 0.3f;
         const float moveSpeed = 800.0f;
         MouseState originalMouseState;
@@ -106,6 +107,10 @@ namespace GK3D1
 
             arena.Models.Add(new CModel(Content.Load<Model>("parkbench"),
                 new Vector3(0, -500, -100), Vector3.Zero, new Vector3(2f), GraphicsDevice));
+            arena.Models.Add(new CModel(Content.Load<Model>("volleyball"),
+                new Vector3(100, -500, 0), Vector3.Zero, new Vector3(2f), GraphicsDevice));
+            arena.Models.Add(new CModel(Content.Load<Model>("parkbench"),
+                new Vector3(0, -500, -100), Vector3.Zero, new Vector3(2f), GraphicsDevice));
             
 
             pointLightEffect = Content.Load<Effect>("PointLightEffect");
@@ -116,7 +121,7 @@ namespace GK3D1
             manySpotLightMat.LightDirection[1] = new Vector3(-1f, -10, 0);
             manySpotLightMat.LightPosition[0] = new Vector3(400, arena.Height / 2 - 50, 0);
             manySpotLightMat.LightPosition[1] = new Vector3(-400, arena.Height / 2 - 50, 0);
-            manySpotLightMat.LightFalloff = 200;
+            manySpotLightMat.LightFalloff = 20;
             manySpotLightMat.ConeAngle = 90f;
             manySpotLightMat.SetEffectParameters(spotLightEffect);
 
@@ -131,10 +136,19 @@ namespace GK3D1
             setEffectParameter(spotLightEffectTextureless, "TextureEnabled", false);
 
             arena.Models[0].SetModelEffect(spotLightEffectBench, true);
+            arena.Models[1].SetModelEffect(spotLightEffectBench, true);
+            arena.Models[2].SetModelEffect(spotLightEffectBench, true);
             arena.Models[0].Material = manySpotLightMat;
+            arena.Models[1].Material = manySpotLightMat;
+            arena.Models[2].Material = manySpotLightMat;
             arena.Models[0].Scale = new Vector3(20);
+            arena.Models[1].Scale = new Vector3(0.2f);
+            arena.Models[2].Scale = new Vector3(20);
             arena.Models[0].Rotation = new Vector3(0, -300, 0);
+            arena.Models[2].Rotation = new Vector3(0, 300, 0);
             arena.Models[0].Position = new Vector3(0, -arena.Height/2 + 50, -600);
+            arena.Models[1].Position = new Vector3(300, -arena.Height/2 , 0);
+            arena.Models[2].Position = new Vector3(0, -arena.Height/2 + 50 , 600);
 
             SetUpCamera();
             CalculateNormals(arena.Vertices, arena.Indices);
@@ -195,6 +209,10 @@ namespace GK3D1
                 moveVector += new Vector3(0, 1, 0);
             if (keyState.IsKeyDown(Keys.PageDown))
                 moveVector += new Vector3(0, -1, 0);
+            if (keyState.IsKeyDown(Keys.X))
+                roll += rotationSpeed * amount;
+            if (keyState.IsKeyDown(Keys.C))
+                roll -= rotationSpeed * amount;
             if (keyState.IsKeyDown(Keys.Tab))
                 MouseEnable = !MouseEnable;
             if (keyState.IsKeyDown(Keys.Escape))
@@ -205,7 +223,7 @@ namespace GK3D1
 
         private void AddToCameraPosition(Vector3 vectorToAdd)
         {
-            Matrix cameraRotation = Matrix.CreateRotationX(pitch) * Matrix.CreateRotationY(yaw);
+            Matrix cameraRotation = Matrix.CreateRotationZ(roll) * Matrix.CreateRotationX(pitch) * Matrix.CreateRotationY(yaw);
             Vector3 rotatedVector = Vector3.Transform(vectorToAdd, cameraRotation);
             position += moveSpeed * rotatedVector;
             UpdateViewMatrix();
@@ -213,7 +231,7 @@ namespace GK3D1
 
         private void UpdateViewMatrix()
         {
-            var cameraRotationMatrix = Matrix.CreateRotationX(pitch) * Matrix.CreateRotationY(yaw);
+            var cameraRotationMatrix = Matrix.CreateRotationZ(roll) * Matrix.CreateRotationX(pitch) * Matrix.CreateRotationY(yaw);
 
             var cameraOriginalTargetVector = new Vector3(0, 0, -1);
             var cameraOriginalUpVector = new Vector3(0, 1, 0);

@@ -1,25 +1,38 @@
-#define NUMLIGHTS 2
+#define NUMLIGHTS 3
 
 float4x4 World;
 float4x4 View;
 float4x4 Projection;
-float3 AmbientLightColor = float3(.15, .15, .15);
+
+// Point lights
+float3 PointLightPosition = float3(200, -300, 0);
+float3 PointLightColor = float3(1, 0, 0);
+float PointLightAttenuation = 900;
+float PointLightFalloff = 10;
+float PointLightSpecularPower = 300;
+float3 PointLightSpecularColor = float3(1, 1, 1);
+
+// Spot lights
 float3 DiffuseColor = float3(.85, .85, .85);
 float3 LightPosition[NUMLIGHTS];
 float3 LightDirection[NUMLIGHTS];
 float3 LightColor[NUMLIGHTS];
 float ConeAngle = 90;
-float LightFalloff = 20;
+float LightFalloff = 200;
 float SpecularPower = 300;
-float3 CameraPosition;
 float3 SpecularColor = float3(1, 1, 1);
+
+float3 AmbientLightColor = float3(.15, .15, .15);
+float3 CameraPosition;
 texture BasicTexture;
+bool TextureEnabled = true;
 
 sampler BasicTextureSampler = sampler_state {
 	texture = <BasicTexture>;
 };
 
-bool TextureEnabled = true;
+
+///////////////////////////////////////////////////// Technique for textured objects
 
 struct VertexShaderInput
 {
@@ -61,7 +74,18 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float3 totalLight = float3(0, 0, 0);
 	totalLight += AmbientLightColor;
 
-	// Perform lighting calculations per light
+	// Point light
+	float3 lightDir = normalize(PointLightPosition - input.WorldPosition);
+	float diffuse = dot(normalize(input.Normal), lightDir);
+	float d = distance(PointLightPosition, input.WorldPosition);
+	float att = 1 - pow(clamp(d / PointLightAttenuation, 0, 1),	PointLightFalloff);
+	float3 normal = normalize(input.Normal);
+	float3 refl = reflect(lightDir, normal);
+	float3 view = normalize(input.ViewDirection);
+	totalLight += pow(saturate(dot(refl, view)), PointLightSpecularPower) * PointLightSpecularColor;
+	totalLight += diffuse * att * PointLightColor;
+
+	// Perform lighting calculations per spot light
 	for (int i = 0; i < NUMLIGHTS; i++)
 	{
 		float3 lightDir = normalize(LightPosition[i] - input.WorldPosition);
@@ -76,11 +100,11 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 		float3 refl = reflect(lightDir, normal);
 		float3 view = normalize(input.ViewDirection);
 
-		if (a < d)
+		if (a < d){
 			att = 1 - pow(clamp(a / d, 0, 1), LightFalloff);
-
-		//specular
-		totalLight += pow(saturate(dot(refl, view)), SpecularPower) * SpecularColor;
+			//specular
+			totalLight += pow(saturate(dot(refl, view)), SpecularPower) * SpecularColor;
+		}
 
 		totalLight += diffuse * att * LightColor[i];
 	}
@@ -92,12 +116,12 @@ technique Technique1
 {
     pass Pass1
 	{
-		VertexShader = compile vs_1_1 VertexShaderFunction();
-		PixelShader = compile ps_2_0 PixelShaderFunction();
+		VertexShader = compile vs_3_0 VertexShaderFunction();
+		PixelShader = compile ps_3_0 PixelShaderFunction();
 	}
 }
 
-/////////////////////////////////////////////////////
+///////////////////////////////////////////////////// Technique for colored objects
 
 struct VertexShaderInputColor
 {
@@ -112,6 +136,7 @@ struct VertexShaderOutputColor
 	float4 Color : COLOR;
 	float3 Normal : TEXCOORD0;
 	float4 WorldPosition : TEXCOORD1;
+	float3 ViewDirection : TEXCOORD3;
 };
 
 VertexShaderOutputColor VertexShaderFunctionColor(VertexShaderInputColor input)
@@ -120,6 +145,7 @@ VertexShaderOutputColor VertexShaderFunctionColor(VertexShaderInputColor input)
 	float4 worldPosition = mul(input.Position, World);
 	float4 viewPosition = mul(worldPosition, View);
 	output.Position = mul(viewPosition, Projection);
+	output.ViewDirection = worldPosition - CameraPosition;
 	output.WorldPosition = worldPosition;
 	output.Color = input.Color;
 	output.Normal = mul(input.Normal, World);
@@ -135,6 +161,19 @@ float4 PixelShaderFunctionColor(VertexShaderOutputColor input) : COLOR0
 	float3 totalLight = float3(0, 0, 0);
 	totalLight += AmbientLightColor;
 
+	// Point light
+	float3 lightDir = normalize(PointLightPosition - input.WorldPosition);
+	float diffuse = dot(normalize(input.Normal), lightDir);
+	float d = distance(PointLightPosition, input.WorldPosition);
+	float att = 1 - pow(clamp(d / PointLightAttenuation, 0, 1),	PointLightFalloff);
+	float3 normal = normalize(input.Normal);
+	float3 refl = reflect(lightDir, normal);
+	float3 view = normalize(input.ViewDirection);
+	if( att > 0.9f)
+		totalLight += pow(saturate(dot(refl, view)), PointLightSpecularPower) * PointLightSpecularColor;
+	totalLight += diffuse * att * PointLightColor;
+
+
 	// Perform lighting calculations per light
 	for (int i = 0; i < NUMLIGHTS; i++)
 	{
@@ -145,8 +184,14 @@ float4 PixelShaderFunctionColor(VertexShaderOutputColor input) : COLOR0
 		float a = cos(ConeAngle);
 		float att = 0;
 
-		if (a < d)
+		float3 normal = normalize(input.Normal);
+		float3 refl = reflect(lightDir, normal);
+		float3 view = normalize(input.ViewDirection);
+
+		if (a < d){
 			att = 1 - pow(clamp(a / d, 0, 1), LightFalloff);
+			totalLight += pow(saturate(dot(refl, view)), SpecularPower) * SpecularColor;
+		}
 
 		totalLight += diffuse * att * LightColor[i];
 	}
@@ -158,7 +203,7 @@ technique Color
 {
     pass Pass1
 	{
-		VertexShader = compile vs_1_1 VertexShaderFunctionColor();
-		PixelShader = compile ps_2_0 PixelShaderFunctionColor();
+		VertexShader = compile vs_3_0 VertexShaderFunctionColor();
+		PixelShader = compile ps_3_0 PixelShaderFunctionColor();
 	}
 }
