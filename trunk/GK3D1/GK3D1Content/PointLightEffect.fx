@@ -35,10 +35,12 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	VertexShaderOutput output;
 	float4 worldPosition = mul(input.Position, World);
 	float4 viewPosition = mul(worldPosition, View);
+
 	output.Position = mul(viewPosition, Projection);
 	output.WorldPosition = worldPosition;
 	output.UV = input.UV;
 	output.Normal = mul(input.Normal, World);
+
 	return output;
 }
 
@@ -52,7 +54,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	totalLight += AmbientLightColor;
 
 	float3 lightDir = normalize(LightPosition - input.WorldPosition);
-	float diffuse = saturate(dot(normalize(input.Normal), lightDir));
+	float diffuse = dot(normalize(input.Normal), lightDir);
 	float d = distance(LightPosition, input.WorldPosition);
 	float att = 1 - pow(clamp(d / LightAttenuation, 0, 1),
 	LightFalloff);
@@ -66,6 +68,6 @@ technique Technique1
     pass Pass1
 	{
 		VertexShader = compile vs_1_1 VertexShaderFunction();
-		PixelShader = compile ps_2_0 PixelShaderFunction();
+		PixelShader = compile ps_3_0 PixelShaderFunction();
 	}
 }

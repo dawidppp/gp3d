@@ -71,6 +71,6 @@ technique Technique1
     pass Pass1
 	{
 		VertexShader = compile vs_1_1 VertexShaderFunction();
-		PixelShader = compile ps_2_0 PixelShaderFunction();
+		PixelShader = compile ps_3_0 PixelShaderFunction();
 	}
 }

@@ -36,6 +36,8 @@ namespace GK3D1
                 AmbientLightColor);
             if (effect.Parameters["LightPosition"] != null)
                 effect.Parameters["LightPosition"].SetValue(LightPosition);
+            if (effect.Parameters["LightFalloff"] != null)
+                effect.Parameters["LightFalloff"].SetValue(LightFalloff);
             if (effect.Parameters["ConeAngle"] != null)
                 effect.Parameters["ConeAngle"].SetValue(
                 MathHelper.ToRadians(ConeAngle / 2));

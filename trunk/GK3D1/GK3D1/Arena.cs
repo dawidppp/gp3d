@@ -48,9 +48,9 @@ namespace GK3D1
             SetField();
             SetFloor();
             Models = new List<CModel>();
-            Net = new Cuboid(new Vector3(0, -780, 0), 5, 100, 700, false, true, Color.Green);
-            LeftPost = new Cuboid(new Vector3(0, -850, 350), 10, 300, 10, false, true, Color.Green);
-            RightPost = new Cuboid(new Vector3(0, -850, -350), 10, 300, 10, false, true, Color.Green);
+            Net = new Cuboid(new Vector3(0, -780, 0), 5, 100, 700, false, true, Color.LightGray);
+            LeftPost = new Cuboid(new Vector3(0, -850, 350), 10, 300, 10, false, true, Color.LightGray);
+            RightPost = new Cuboid(new Vector3(0, -850, -350), 10, 300, 10, false, true, Color.LightGray);
             
         }
 
