@@ -126,6 +126,11 @@
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
     </Compile>
+    <Content Include="DETECTOR.PNG">
+      <Name>DETECTOR</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Content>
     <Content Include="qjrh1cav.jpg">
       <Name>qjrh1cav</Name>
       <Importer>TextureImporter</Importer>
@@ -176,13 +181,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="refereechair.fbx">
-      <Name>refereechair</Name>
-      <Importer>FbxImporter</Importer>
-      <Processor>ModelProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="parkbench.fbx">
       <Name>parkbench</Name>
       <Importer>FbxImporter</Importer>
@@ -192,6 +190,41 @@
   <ItemGroup>
     <Compile Include="volleyball.fbx">
       <Name>volleyball</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="spotlight.fbx">
+      <Name>spotlight</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="refereechair.fbx">
+      <Name>refereechair</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="umpire.FBX">
+      <Name>umpire</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="bulb.fbx">
+      <Name>bulb</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="detector_3ds.fbx">
+      <Name>detector_3ds</Name>
       <Importer>FbxImporter</Importer>
       <Processor>ModelProcessor</Processor>
     </Compile>

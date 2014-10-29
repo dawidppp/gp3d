@@ -13,18 +13,20 @@ namespace GK3D1
         public int Width { get; private set; }
         public int Height { get; private set; }
         public int Depth { get; private set; }
+
         public Texture2D CourtTexture { get; set; }
         public Texture2D FloorTexture { get; set; }
-        public List<CModel> Models { get; set; }
 
-        public Game1.VertexPositionColorNormal[] Vertices { get; private set; }
+        public VertexPositionColorNormal[] Vertices { get; private set; }
         public int[] Indices { get; private set; }
+        public Color ArenaWallsColor { get; set; }
 
         public Cuboid Net { get; set; }
         public Cuboid LeftPost { get; set; }
         public Cuboid RightPost { get; set; }
-        public Bench Bench { get; set; }
-        public ObjectModel UmpireChairs { get; set; }
+        public List<Cuboid> Bleachers { get; set; }
+        public List<CModel> Models { get; set; }
+        public List<CModel> TexturelessModels { get; set; }
 
         public VertexPositionNormalTexture[] FieldVertices { get; private set; }
         public int[] FieldIndices { get; private set; }
@@ -32,14 +34,24 @@ namespace GK3D1
         public VertexPositionNormalTexture[] FloorVertices { get; private set; }
         public int[] FloorIndices { get; private set; }
 
-        private ContentManager contentManager;
+        public Effect MultipleLightEffectToClone { get; set; }
+        public Effect FieldLightEffect { get; set; }
+        public Effect FloorLightEffect { get; set; }
+        public Effect TexturelessLightEffect { get; set; }
+        public MultiLightingMaterial LightMaterialToClone { get; set; }
+        public MultiLightingMaterial FloorMaterial { get; set; }
 
-        public Arena(ContentManager contentManager)
+        private ContentManager contentManager;
+        private GraphicsDevice device;
+
+        public Arena(ContentManager contentManager, GraphicsDevice device)
         {
-            Width = 7200;
-            Depth = 4800;
-            Height = 2000;
-            SetUpVertices();
+            Width = 12000;
+            Depth = 10000;
+            Height = 4000;
+            this.device = device;
+            ArenaWallsColor = Color.DimGray;
+            SetUpVertices(ArenaWallsColor);
             //SetUpOuterIndices();
             SetUpInnerIndices();
             this.contentManager = contentManager;
@@ -48,33 +60,138 @@ namespace GK3D1
             SetField();
             SetFloor();
             Models = new List<CModel>();
-            Net = new Cuboid(new Vector3(0, -780, 0), 5, 100, 700, false, true, Color.LightGray);
-            LeftPost = new Cuboid(new Vector3(0, -850, 350), 10, 300, 10, false, true, Color.LightGray);
-            RightPost = new Cuboid(new Vector3(0, -850, -350), 10, 300, 10, false, true, Color.LightGray);
+            TexturelessModels = new List<CModel>();
+            MultipleLightEffectToClone = contentManager.Load<Effect>("ManySpotLightEffect");
+
+            Net = new Cuboid(new Vector3(0, -Height / 2 + 480, 0), 5, 200, 1600, false, true, Color.LightGray);
+            LeftPost = new Cuboid(new Vector3(0, -Height/2 + 300, 800), 10, 600, 10, false, true, Color.LightGray);
+            RightPost = new Cuboid(new Vector3(0, -Height / 2 + 300, -800), 10, 600, 10, false, true, Color.LightGray);
+
+            setEffects();
+            setModels();
+            Bleachers = new List<Cuboid>();
+            setBleachers();
+        }
+
+        private void setBleachers()
+        {
+            int height = 75;
+            int width = (int)(Width/1.5f);
+            int baseDepth = Depth/4;
+            int depthIndent = 200;
+            Color color = Color.DarkRed;
+
+            for(int i=0; i<15; i++)
+                Bleachers.Add(new Cuboid(new Vector3(0, -Height / 2 - height/2 + i*height, Depth / 3 + i*depthIndent), width, height, baseDepth + i * depthIndent, false, true,
+                    color));
+
+            for (int i = 0; i < 15; i++)
+                Bleachers.Add(new Cuboid(new Vector3(0, -Height / 2 - height / 2 + i * height, -Depth / 3 - i * depthIndent), width, height, baseDepth + i * depthIndent, false, true,
+                    color));
+
+            for (int i = 0; i < 15; i++)
+                Bleachers.Add(new Cuboid(new Vector3(-Width / 3 - i * depthIndent, -Height / 5 + i * height, 0), baseDepth / 6 + i * depthIndent, height, width / 2, false, true,
+                    color));
+
+            for (int i = 0; i < 15; i++)
+                Bleachers.Add(new Cuboid(new Vector3(Width / 3 + i * depthIndent, -Height / 5 + i * height, 0), baseDepth / 6 + i * depthIndent, height, width / 2, false, true,
+                    color));
             
         }
 
-        public void SetUpVertices()
+        private void setModels()
         {
-            Vertices = new Game1.VertexPositionColorNormal[8];
+            var parkbench = contentManager.Load<Model>("parkbench");
+            var volleyball = contentManager.Load<Model>("volleyball");
+            var spotlight = contentManager.Load<Model>("spotlight");
+            var detector = contentManager.Load<Model>("detector_3ds");
+            var ship = contentManager.Load<Model>("Models\\p1_wedge");
+            var umpire = contentManager.Load<Model>("umpire");
+            Models.Add(new CModel(parkbench, new Vector3(0, -Height / 2 + 50, -1600), Vector3.Zero, new Vector3(3f), device));
+            Models.Add(new CModel(volleyball, new Vector3(300, -Height / 2, 0), Vector3.Zero, new Vector3(2f), device));
+            Models.Add(new CModel(parkbench, new Vector3(0, -Height / 2 + 50, 1600), Vector3.Zero, new Vector3(3f), device));
+            Models.Add(new CModel(spotlight, LightMaterialToClone.LightPosition[0] + new Vector3(0, 10, 0), LightMaterialToClone.LightDirection[0], new Vector3(1), device));
+            Models.Add(new CModel(spotlight, LightMaterialToClone.LightPosition[1] + new Vector3(0, 10, 0), LightMaterialToClone.LightDirection[0], new Vector3(1), device));
+            Models.Add(new CModel(detector, LightMaterialToClone.PointLightPosition + new Vector3(-40, 0, -100), new Vector3(300, 0, 0), new Vector3(4), device));
+            Models.Add(new CModel(ship, LightMaterialToClone.PointLightPosition + new Vector3(40, 100, 900), new Vector3(0, 0, 0), new Vector3(0.4f), device));
+            //TexturelessModels.Add(new CModel(umpire, new Vector3(0), new Vector3(0, 0, 0), new Vector3(0.2f), device));
+
+
+            foreach (CModel m in Models)
+            {
+                m.SetModelEffect(MultipleLightEffectToClone, true);
+                m.Material = LightMaterialToClone;
+            }
+
+            //foreach (CModel m in TexturelessModels)
+            //{
+            //    m.SetModelEffect(TexturelessLightEffect, true);
+            //    m.Material = LightMaterialToClone;
+            //}
+
+            Models[0].Scale = new Vector3(20);
+            Models[1].Scale = new Vector3(0.2f);
+            Models[2].Scale = new Vector3(20);
+
+            Models[0].Rotation = new Vector3(0, -300, 0);
+            Models[2].Rotation = new Vector3(0, 300, 0);
+        }
+
+        private void setEffects()
+        {
+            // base effect and material to be cloned TODO
+            MultipleLightEffectToClone.CurrentTechnique = MultipleLightEffectToClone.Techniques["Technique1"];
+            LightMaterialToClone = new MultiLightingMaterial();
+            LightMaterialToClone.LightDirection[0] = new Vector3(1f, -1, 0);
+            LightMaterialToClone.LightDirection[1] = new Vector3(-1f, -10, 0);
+            LightMaterialToClone.LightPosition[0] = new Vector3(400, Height / 2 - 200, 0);
+            LightMaterialToClone.LightPosition[1] = new Vector3(-400, Height / 2 - 200, 0);
+            LightMaterialToClone.PointLightPosition = new Vector3(-Width/7, 0, -Depth/2 + 180);
+            LightMaterialToClone.PointLightColor = new Vector3(1, 0, 0);
+            LightMaterialToClone.PointLightAttenuation = 1500;
+            LightMaterialToClone.SpecularPower = 300;
+            LightMaterialToClone.PointLightSpecularColor = new Vector3(1, 0, 0);
+            LightMaterialToClone.LightFalloff = 20;
+            LightMaterialToClone.ConeAngle = 90f;
+            LightMaterialToClone.SetEffectParameters(MultipleLightEffectToClone);
+
+            //field
+            FieldLightEffect = MultipleLightEffectToClone.Clone();
+            setEffectParameter(FieldLightEffect, "BasicTexture", CourtTexture);
+            setEffectParameter(FieldLightEffect, "TextureEnabled", true);
+
+            //floor
+            FloorLightEffect = MultipleLightEffectToClone.Clone();
+            setEffectParameter(FloorLightEffect, "BasicTexture", FloorTexture);
+            setEffectParameter(FloorLightEffect, "TextureEnabled", true);
+
+            //textureless
+            TexturelessLightEffect = MultipleLightEffectToClone.Clone();
+            TexturelessLightEffect.CurrentTechnique = TexturelessLightEffect.Techniques["Color"];
+            setEffectParameter(TexturelessLightEffect, "TextureEnabled", false);
+        }
+
+        public void SetUpVertices(Color color)
+        {
+            Vertices = new VertexPositionColorNormal[8];
             var minus = 100;
             Vertices[0].Position = new Vector3(-Width / 2, -Height / 2 - minus, Depth / 2);
-            Vertices[0].Color = Color.DarkOrange;
+            Vertices[0].Color = color;
             Vertices[1].Position = new Vector3(Width / 2, -Height / 2 - minus, Depth / 2);
-            Vertices[1].Color = Color.DarkOrange;
+            Vertices[1].Color = color;
             Vertices[2].Position = new Vector3(Width / 2, -Height / 2 - minus, -Depth / 2);
-            Vertices[2].Color = Color.DarkOrange;
+            Vertices[2].Color = color;
             Vertices[3].Position = new Vector3(-Width / 2, -Height / 2 - minus, -Depth / 2);
-            Vertices[3].Color = Color.DarkOrange;
+            Vertices[3].Color = color;
 
             Vertices[4].Position = new Vector3(-Width / 2, Height / 2 - minus, Depth / 2);
-            Vertices[4].Color = Color.DarkOrange;
+            Vertices[4].Color = color;
             Vertices[5].Position = new Vector3(Width / 2, Height / 2 - minus, Depth / 2);
-            Vertices[5].Color = Color.DarkOrange;
+            Vertices[5].Color = color;
             Vertices[6].Position = new Vector3(Width / 2, Height / 2 - minus, -Depth / 2);
-            Vertices[6].Color = Color.DarkOrange;
+            Vertices[6].Color = color;
             Vertices[7].Position = new Vector3(-Width / 2, Height / 2 - minus, -Depth / 2);
-            Vertices[7].Color = Color.DarkOrange;
+            Vertices[7].Color = color;
         }
 
         private void SetUpOuterIndices()
@@ -139,17 +256,17 @@ namespace GK3D1
         private void SetField()
         {
             FieldVertices = new VertexPositionNormalTexture[4];
-            FieldVertices[0].Position = new Vector3(-1000, -Height / 2 + 2, 500);
-            FieldVertices[0].TextureCoordinate = new Vector2(0,0);
+            FieldVertices[0].Position = new Vector3(-Width/5, -Height / 2 + 2, Depth/8);
+            FieldVertices[0].TextureCoordinate = new Vector2(0, 0);
             //FieldVertices[0].Color = Color.Yellow;
-            FieldVertices[1].Position = new Vector3(1000, -Height / 2 + 2, 500);
-            FieldVertices[1].TextureCoordinate = new Vector2(0,1);
+            FieldVertices[1].Position = new Vector3(Width / 5, -Height / 2 + 2, Depth / 8);
+            FieldVertices[1].TextureCoordinate = new Vector2(0, 1);
             //FieldVertices[1].Color = Color.Yellow;
-            FieldVertices[2].Position = new Vector3(1000, -Height / 2 + 2, -500);
-            FieldVertices[2].TextureCoordinate = new Vector2(1,1);
+            FieldVertices[2].Position = new Vector3(Width / 5, -Height / 2 + 2, -Depth / 8);
+            FieldVertices[2].TextureCoordinate = new Vector2(1, 1);
             //FieldVertices[2].Color = Color.Yellow;
-            FieldVertices[3].Position = new Vector3(-1000, -Height / 2 + 2, -500);
-            FieldVertices[3].TextureCoordinate = new Vector2(1,0);
+            FieldVertices[3].Position = new Vector3(-Width / 5, -Height / 2 + 2, -Depth / 8);
+            FieldVertices[3].TextureCoordinate = new Vector2(1, 0);
             //FieldVertices[3].Color = Color.Yellow;
 
             FieldIndices = new int[6];
@@ -166,7 +283,7 @@ namespace GK3D1
         private void SetFloor()
         {
             FloorVertices = new VertexPositionNormalTexture[4];
-            FloorVertices[0].Position = Vertices[0].Position + new Vector3(0, 60,0);
+            FloorVertices[0].Position = Vertices[0].Position + new Vector3(0, 60, 0);
             FloorVertices[0].TextureCoordinate = new Vector2(0, 0);
             FloorVertices[1].Position = Vertices[1].Position + new Vector3(0, 60, 0);
             FloorVertices[1].TextureCoordinate = new Vector2(0, 1);
@@ -208,6 +325,20 @@ namespace GK3D1
 
             for (int i = 0; i < vertices.Length; i++)
                 vertices[i].Normal.Normalize();
+        }
+
+        void setEffectParameter(Effect effect, string paramName, object val)
+        {
+            if (effect.Parameters[paramName] == null)
+                return;
+            if (val is Vector3)
+                effect.Parameters[paramName].SetValue((Vector3)val);
+            else if (val is bool)
+                effect.Parameters[paramName].SetValue((bool)val);
+            else if (val is Matrix)
+                effect.Parameters[paramName].SetValue((Matrix)val);
+            else if (val is Texture2D)
+                effect.Parameters[paramName].SetValue((Texture2D)val);
         }
     }
 }

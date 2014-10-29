@@ -82,7 +82,8 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float3 normal = normalize(input.Normal);
 	float3 refl = reflect(lightDir, normal);
 	float3 view = normalize(input.ViewDirection);
-	totalLight += pow(saturate(dot(refl, view)), PointLightSpecularPower) * PointLightSpecularColor;
+	if( att > 0.9f)
+		totalLight += pow(saturate(dot(refl, view)), PointLightSpecularPower) * PointLightSpecularColor;
 	totalLight += diffuse * att * PointLightColor;
 
 	// Perform lighting calculations per spot light
