@@ -115,7 +115,6 @@
     <Compile Include="Camera.cs" />
     <Compile Include="CModel.cs" />
     <Compile Include="Cuboid.cs" />
-    <Compile Include="FreeCamera.cs" />
     <Compile Include="Material.cs" />
     <Compile Include="MeshTag.cs" />
     <Compile Include="MultipleLightingMaterial.cs" />
@@ -125,6 +124,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="SpotLightMaterial.cs" />
+    <Compile Include="VertexPositionColorNormal.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />
@@ -162,6 +162,9 @@
       <ProductName>Microsoft XNA Framework Redistributable 4.0</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="umpire.fbx" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\Microsoft.Xna.GameStudio.targets" />

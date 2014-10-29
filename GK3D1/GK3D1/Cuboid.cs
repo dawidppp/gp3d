@@ -9,17 +9,21 @@ namespace GK3D1
 {
     class Cuboid
     {
-        public Game1.VertexPositionColorNormal[] Vertices { get; private set; }
+        public VertexPositionColorNormal[] Vertices { get; private set; }
         public int[] Indices { get; private set; }
         public Vector3 Center { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
         public int Depth { get; set; }
         public Color Color { get; set; }
+        public Material Material { get; set; }
+
+        public int BiggerWidth { get; set; }
+        public int SmallerWidth { get; set; }
 
         public Cuboid(Vector3 center, int width, int height, int depth, bool isVisibleInside, bool isVisibleOutside, Color color)
         {
-            Vertices = new Game1.VertexPositionColorNormal[8];
+            Vertices = new VertexPositionColorNormal[8];
             Indices = new int[36];
             Center = center;
             Color = color;
@@ -33,11 +37,49 @@ namespace GK3D1
                 SetUpOuterIndices();
         }
 
-        public Cuboid(Game1.VertexPositionColorNormal[] vertices, int[] indices, Vector3 center)
+        public Cuboid(Vector3 center, int biggerWidth, int smallerWidth, int height, int depth, bool isVisibleInside, bool isVisibleOutside, Color color)
+        {
+            Vertices = new VertexPositionColorNormal[8];
+            Indices = new int[36];
+            Center = center;
+            Color = color;
+            BiggerWidth = biggerWidth;
+            SmallerWidth = smallerWidth;
+            Height = height;
+            Depth = depth;
+            SetUpDiffWidthVertices();
+            if (isVisibleInside)
+                SetUpInnerIndices();
+            if (isVisibleOutside)
+                SetUpOuterIndices();
+        }
+
+        public Cuboid(VertexPositionColorNormal[] vertices, int[] indices, Vector3 center)
         {
             Vertices = vertices;
             Indices = indices;
             Center = center;
+        }
+
+        public void SetUpDiffWidthVertices()
+        {
+            Vertices[0].Position = new Vector3(Center.X - BiggerWidth / 2, Center.Y - Height / 2, Center.Z + Depth / 2);
+            Vertices[0].Color = Color;
+            Vertices[1].Position = new Vector3(Center.X + BiggerWidth / 2, Center.Y - Height / 2, Center.Z + Depth / 2);
+            Vertices[1].Color = Color;
+            Vertices[2].Position = new Vector3(Center.X + SmallerWidth / 2, Center.Y - Height / 2, Center.Z - Depth / 2);
+            Vertices[2].Color = Color;
+            Vertices[3].Position = new Vector3(Center.X - SmallerWidth / 2, Center.Y - Height / 2, Center.Z - Depth / 2);
+            Vertices[3].Color = Color;
+
+            Vertices[4].Position = new Vector3(Center.X - BiggerWidth / 2, Center.Y + Height / 2, Center.Z + Depth / 2);
+            Vertices[4].Color = Color;
+            Vertices[5].Position = new Vector3(Center.X + BiggerWidth / 2, Center.Y + Height / 2, Center.Z + Depth / 2);
+            Vertices[5].Color = Color;
+            Vertices[6].Position = new Vector3(Center.X + SmallerWidth / 2, Center.Y + Height / 2, Center.Z - Depth / 2);
+            Vertices[6].Color = Color;
+            Vertices[7].Position = new Vector3(Center.X - SmallerWidth / 2, Center.Y + Height / 2, Center.Z - Depth / 2);
+            Vertices[7].Color = Color;
         }
 
         public void SetUpVertices()
@@ -118,7 +160,5 @@ namespace GK3D1
             }
             return firstIndex;
         }
-
-        
     }
 }
