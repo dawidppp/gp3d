@@ -9,38 +9,38 @@ namespace GK3D1
 {
     public class MultiLightingMaterial : Material, ICloneable
     {
-        public Vector3 AmbientLightColor { get; set; }
+        public Vector4 AmbientLightColor { get; set; }
         public Vector3[] LightPosition { get; set; }
         public Vector3[] LightDirection { get; set; }
-        public Vector3[] LightColor { get; set; }
+        public Vector4[] LightColor { get; set; }
         public float ConeAngle { get; set; }
         public float LightFalloff { get; set; }
         public float SpecularPower { get; set; }
-        public Vector3 SpecularColor { get; set; }
+        public Vector4 SpecularColor { get; set; }
 
         public Vector3 PointLightPosition { get; set; }
-        public Vector3 PointLightColor { get; set; }
+        public Vector4 PointLightColor { get; set; }
         public float PointLightAttenuation { get; set; }
         public float PointLightFalloff { get; set; }
         public float PointLightSpecularPower { get; set; }
-        public Vector3 PointLightSpecularColor { get; set; }
+        public Vector4 PointLightSpecularColor { get; set; }
 
         public MultiLightingMaterial()
         {
-            AmbientLightColor = new Vector3(.2f, .2f, .2f);
+            AmbientLightColor = new Vector4(.2f, .2f, .2f, 1);
             LightDirection = new Vector3[2];
             LightPosition = new Vector3[2];
-            LightColor = new Vector3[] { Vector3.One, Vector3.One };
+            LightColor = new Vector4[] { Vector4.One, Vector4.One };
             ConeAngle = 30;
             LightFalloff = 20;
             SpecularPower = 300;
-            SpecularColor = new Vector3(1, 1, 1);
+            SpecularColor = new Vector4(1, 1, 1, 1);
             PointLightPosition = new Vector3(200, -300, 0);
-            PointLightColor = new Vector3(1, 0, 0);
+            PointLightColor = new Vector4(1, 0, 0, 1);
             PointLightAttenuation = 900;
             PointLightFalloff = 10;
             PointLightSpecularPower = 300;
-            PointLightSpecularColor = new Vector3(1, 1, 1);
+            PointLightSpecularColor = new Vector4(1, 1, 1, 1);
         }
         public override void SetEffectParameters(Effect effect)
         {

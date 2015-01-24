@@ -14,14 +14,17 @@ namespace GK3D1
         public int Height { get; private set; }
         public int Depth { get; private set; }
 
-        public Texture2D CourtTexture { get; set; }
+        public List<Texture2D> CourtTextures { get; set; }
+        public Texture2D CourtLineTexture { get; set; }
+        public Texture2D NetTexture { get; set; }
         public Texture2D FloorTexture { get; set; }
+        public int ActiveCourtTexture { get; set; }
 
         public VertexPositionColorNormal[] Vertices { get; private set; }
         public int[] Indices { get; private set; }
         public Color ArenaWallsColor { get; set; }
 
-        public Cuboid Net { get; set; }
+        public TexturedRectangle Net { get; set; }
         public Cuboid LeftPost { get; set; }
         public Cuboid RightPost { get; set; }
         public List<Cuboid> Bleachers { get; set; }
@@ -36,6 +39,7 @@ namespace GK3D1
 
         public Effect MultipleLightEffectToClone { get; set; }
         public Effect FieldLightEffect { get; set; }
+        public Effect NetLightEffect { get; set; }
         public Effect FloorLightEffect { get; set; }
         public Effect TexturelessLightEffect { get; set; }
         public MultiLightingMaterial LightMaterialToClone { get; set; }
@@ -55,15 +59,24 @@ namespace GK3D1
             //SetUpOuterIndices();
             SetUpInnerIndices();
             this.contentManager = contentManager;
-            CourtTexture = contentManager.Load<Texture2D>("court");
-            FloorTexture = contentManager.Load<Texture2D>("floor");
+            CourtTextures = new List<Texture2D>
+            {
+                contentManager.Load<Texture2D>("court_grey"),
+                contentManager.Load<Texture2D>("court_green"),
+                contentManager.Load<Texture2D>("court_wood")
+            };
+            ActiveCourtTexture = 0;
+            CourtLineTexture = contentManager.Load<Texture2D>("court_lines");
+            NetTexture = contentManager.Load<Texture2D>("volnet");
+            FloorTexture = CreateStaticMap(1000, 700);
             SetField();
             SetFloor();
             Models = new List<CModel>();
             TexturelessModels = new List<CModel>();
             MultipleLightEffectToClone = contentManager.Load<Effect>("ManySpotLightEffect");
 
-            Net = new Cuboid(new Vector3(0, -Height / 2 + 480, 0), 5, 200, 1600, false, true, Color.LightGray);
+            //Net = new Cuboid(new Vector3(0, -Height / 2 + 480, 0), 5, 200, 1600, false, true, Color.LightGray);
+            Net = new TexturedRectangle(new Vector3(0, -Height / 2 + 480, 0), 1600, 200, NetTexture, true);
             LeftPost = new Cuboid(new Vector3(0, -Height/2 + 300, 800), 10, 600, 10, false, true, Color.LightGray);
             RightPost = new Cuboid(new Vector3(0, -Height / 2 + 300, -800), 10, 600, 10, false, true, Color.LightGray);
 
@@ -71,6 +84,73 @@ namespace GK3D1
             setModels();
             Bleachers = new List<Cuboid>();
             setBleachers();
+        }
+
+        private Texture2D CreateStaticMap(int width, int height)
+        {
+            Random rand = new Random();
+            Color[] noisyColors = new Color[height * width];
+            for (int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++)
+                {
+                    var vectorLength = (new Vector2(width / 2, height / 2) - new Vector2(x, y)).Length();
+                    var radius = 0.1 * Math.Cos(15 * vectorLength + 40) + 0.5;
+                    var diff = radius - (int)radius;
+                    var color = diff < 0.5 ? Color.SaddleBrown : Color.BurlyWood;
+                    //var color = diff < 0.25 ? Color.Yellow : (diff < 0.5 ? Color.Brown : (diff < 0.75 ? Color.Yellow : Color.Brown));
+                    noisyColors[x + y * width] = color;
+                }
+
+
+            Color[] floor = new Color[height * width];
+            var rectHeight = 5;
+            var rectWidth = 40;
+            var rectCount = height * width / (rectHeight * rectWidth);
+            var yBeg = 0;
+            var yEnd = rectHeight;
+            var yInc = 0;
+            var xBeg = 0;
+            var xEnd = rectWidth;
+            var xInc = 0;
+
+            for (int i = 0; i < rectCount; i++)
+            {
+                var randX = rand.Next(0, width - 1 - rectWidth);
+                var randY = rand.Next(0, height - 1 - rectHeight);
+                float random = (float)rand.Next(25, 75) / 100;
+
+                for (int x = xBeg; x < xEnd; x++, xInc++)
+                {
+                    for (int y = yBeg; y < yEnd; y++, yInc++)
+                        floor[x + y * width] = Color.Multiply(noisyColors[(randX + xInc) + (randY + yInc) * width], random);
+
+                    yInc = 0;
+                }
+
+                yBeg = yEnd;
+                yEnd += rectHeight;
+
+                if (yEnd > height)
+                {
+                    yBeg = 0;
+                    yEnd = rectHeight;
+                    xBeg = xEnd;
+                    xEnd += rectWidth;
+
+                    if (xEnd > width)
+                        break;
+                }
+
+                if (xEnd > width)
+                    break;
+
+                yInc = 0;
+                xInc = 0;
+            }
+
+            Texture2D noiseImage = new Texture2D(device, width, height, false, SurfaceFormat.Color);
+            noiseImage.SetData(floor);
+            return noiseImage;
         }
 
         private void setBleachers()
@@ -113,7 +193,7 @@ namespace GK3D1
             Models.Add(new CModel(spotlight, LightMaterialToClone.LightPosition[0] + new Vector3(0, 10, 0), LightMaterialToClone.LightDirection[0], new Vector3(1), device));
             Models.Add(new CModel(spotlight, LightMaterialToClone.LightPosition[1] + new Vector3(0, 10, 0), LightMaterialToClone.LightDirection[0], new Vector3(1), device));
             Models.Add(new CModel(detector, LightMaterialToClone.PointLightPosition + new Vector3(-40, 0, -100), new Vector3(300, 0, 0), new Vector3(4), device));
-            Models.Add(new CModel(ship, LightMaterialToClone.PointLightPosition + new Vector3(40, 100, 900), new Vector3(0, 0, 0), new Vector3(0.4f), device));
+           // Models.Add(new CModel(ship, LightMaterialToClone.PointLightPosition + new Vector3(40, 100, 900), new Vector3(0, 0, 0), new Vector3(0.4f), device));
             //TexturelessModels.Add(new CModel(umpire, new Vector3(0), new Vector3(0, 0, 0), new Vector3(0.2f), device));
 
 
@@ -141,24 +221,36 @@ namespace GK3D1
         {
             // base effect and material to be cloned TODO
             MultipleLightEffectToClone.CurrentTechnique = MultipleLightEffectToClone.Techniques["Technique1"];
+            setEffectParameter(MultipleLightEffectToClone, "FogStart", FogEffect.FogStart);
+            setEffectParameter(MultipleLightEffectToClone, "FogEnd", FogEffect.FogEnd);
+            setEffectParameter(MultipleLightEffectToClone, "FogPower", FogEffect.FogPower);
             LightMaterialToClone = new MultiLightingMaterial();
             LightMaterialToClone.LightDirection[0] = new Vector3(1f, -1, 0);
             LightMaterialToClone.LightDirection[1] = new Vector3(-1f, -10, 0);
             LightMaterialToClone.LightPosition[0] = new Vector3(400, Height / 2 - 200, 0);
             LightMaterialToClone.LightPosition[1] = new Vector3(-400, Height / 2 - 200, 0);
             LightMaterialToClone.PointLightPosition = new Vector3(-Width/7, 0, -Depth/2 + 180);
-            LightMaterialToClone.PointLightColor = new Vector3(1, 0, 0);
+            LightMaterialToClone.PointLightColor = new Vector4(1, 0, 0, 1);
             LightMaterialToClone.PointLightAttenuation = 1500;
             LightMaterialToClone.SpecularPower = 300;
-            LightMaterialToClone.PointLightSpecularColor = new Vector3(1, 0, 0);
+            LightMaterialToClone.PointLightSpecularColor = new Vector4(1, 0, 0, 1);
             LightMaterialToClone.LightFalloff = 20;
             LightMaterialToClone.ConeAngle = 90f;
             LightMaterialToClone.SetEffectParameters(MultipleLightEffectToClone);
 
             //field
             FieldLightEffect = MultipleLightEffectToClone.Clone();
-            setEffectParameter(FieldLightEffect, "BasicTexture", CourtTexture);
+            setEffectParameter(FieldLightEffect, "BasicTexture", CourtTextures[0]);
+            setEffectParameter(FieldLightEffect, "OtherTexture", CourtLineTexture);
+            setEffectParameter(FieldLightEffect, "IsOtherTextureEnabled", true);
             setEffectParameter(FieldLightEffect, "TextureEnabled", true);
+            setEffectParameter(FieldLightEffect, "DiffuseColor", new Vector4(0.85f, 0.85f, 0.85f, 1));
+
+            //net
+            NetLightEffect = MultipleLightEffectToClone.Clone();
+            setEffectParameter(NetLightEffect, "BasicTexture", NetTexture);
+            setEffectParameter(NetLightEffect, "TextureEnabled", true);
+            setEffectParameter(NetLightEffect, "DiffuseColor", new Vector4(0.85f, 0.85f, 0.85f, 1));
 
             //floor
             FloorLightEffect = MultipleLightEffectToClone.Clone();
