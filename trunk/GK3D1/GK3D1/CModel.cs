@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace GK3D1
@@ -73,6 +74,9 @@ namespace GK3D1
                             setEffectParameter(effect, "View", View);
                             setEffectParameter(effect, "Projection", Projection);
                             setEffectParameter(effect, "CameraPosition", CameraPosition);
+                            setEffectParameter(effect, "FogEnabled", FogEffect.IsFogEnabled);
+                            setEffectParameter(effect, "FogPower", FogEffect.FogPower);
+                            setEffectParameter(effect, "ClipPlane", (float)Camera.ClipPlaneX);
                         }
                     }
                     mesh.Draw();
@@ -99,7 +103,7 @@ namespace GK3D1
                         if (part.Effect is BasicEffect)
                         {
                             BasicEffect effect = (BasicEffect)part.Effect;
-                            MeshTag tag = new MeshTag(effect.DiffuseColor, effect.Texture,
+                            MeshTag tag = new MeshTag(new Vector4(effect.DiffuseColor, 1), effect.Texture,
                             effect.SpecularPower);
                             part.Tag = tag;
                         }
@@ -143,6 +147,8 @@ namespace GK3D1
                         // Set our remaining parameters to the effect
                         setEffectParameter(toSet, "DiffuseColor", tag.Color);
                         setEffectParameter(toSet, "SpecularPower", tag.SpecularPower);
+                        setEffectParameter(toSet, "FogEnabled", true);
+                        setEffectParameter(toSet, "ClipFront", false);
                         part.Effect = toSet;
                     }
             }
@@ -153,8 +159,12 @@ namespace GK3D1
             {
                 if (effect.Parameters[paramName] == null)
                     return;
-                if (val is Vector3)
+                if (val is Vector4)
+                    effect.Parameters[paramName].SetValue((Vector4)val);
+                else if (val is Vector3)
                     effect.Parameters[paramName].SetValue((Vector3)val);
+                else if (val is float)
+                    effect.Parameters[paramName].SetValue((float)val);
                 else if (val is bool)
                     effect.Parameters[paramName].SetValue((bool)val);
                 else if (val is Matrix)

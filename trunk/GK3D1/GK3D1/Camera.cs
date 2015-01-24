@@ -13,6 +13,7 @@ namespace GK3D1
         public Matrix View { get; set; }
         public Matrix Projection { get; set; }
         public Matrix World { get; set; }
+        public Matrix Reflect { get; set; }
         public float Yaw { get; set; }
         public float Pitch { get; set; }
         public float Roll { get; set; }
@@ -22,19 +23,26 @@ namespace GK3D1
         public float MoveSpeed { get; set; }
         public MouseState OriginalMouseState { get; private set; }
         public bool MouseEnable { get; set; }
+        public static int ClipPlaneX { get; set; }
 
         private GraphicsDevice graphicsDevice;
+        private GraphicsDeviceManager deviceManager;
         private Game1 game;
         private Vector3 bounds;
 
-        public Camera(GraphicsDevice graphicsDevice, Game1 game, Vector3 bounds)
+        public Vector3 Up { get; private set; }
+        public Vector3 Right { get; private set; }
+
+        public Camera(GraphicsDevice graphicsDevice, GraphicsDeviceManager deviceManager, Game1 game, Vector3 bounds)
         {
             this.graphicsDevice = graphicsDevice;
+            this.deviceManager = deviceManager;
             this.game = game;
             this.bounds = bounds;
             Yaw = MathHelper.PiOver2;
             Pitch = 0;
             Roll = 0;
+            ClipPlaneX = 100;
             MouseEnable = true;
             Position = new Vector3(1300, -500, 10);
             RotationSpeed = 0.3f;
@@ -50,6 +58,7 @@ namespace GK3D1
             World = Matrix.Identity;
             Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, graphicsDevice.Viewport.AspectRatio, 1.0f, 20000.0f);
             View = Matrix.CreateLookAt(Position, Position + new Vector3(0, 0, -1), new Vector3(0, 1, 0));
+            Reflect = Matrix.CreateScale(-1, 1, 1);
         }
 
         public void Update(float amount)
@@ -58,6 +67,7 @@ namespace GK3D1
         }
 
         bool isTabDown = false;
+        bool isTildeDown = false;
         private void ProcessInput(float amount)
         {
             MouseState currentMouseState = Mouse.GetState();
@@ -96,6 +106,14 @@ namespace GK3D1
             }
             if (keyState.IsKeyUp(Keys.Tab) && isTabDown)
                 isTabDown = false;
+            if (keyState.IsKeyDown(Keys.OemTilde) && !isTildeDown)
+            {
+                deviceManager.PreferMultiSampling = !deviceManager.PreferMultiSampling;
+                deviceManager.ApplyChanges();
+                isTildeDown = !isTildeDown;
+            }
+            if (keyState.IsKeyUp(Keys.OemTilde) && isTildeDown)
+                isTildeDown = false;
             if (keyState.IsKeyDown(Keys.Escape))
                 game.Exit();
 
@@ -127,6 +145,10 @@ namespace GK3D1
             var cameraRotatedUpVector = Vector3.Transform(cameraOriginalUpVector, cameraRotationMatrix);
 
             View = Matrix.CreateLookAt(Position, cameraFinalTargetVector, cameraRotatedUpVector);
+
+            //billboard
+            this.Up = cameraRotatedUpVector;
+            this.Right = Vector3.Cross(cameraRotatedTargetVector, cameraRotatedUpVector);
         }
     }
 }

@@ -9,12 +9,12 @@ namespace GK3D1
 {
     public class MeshTag
     {
-        public Vector3 Color;
+        public Vector4 Color;
         public Texture2D Texture;
         public float SpecularPower;
         public Effect CachedEffect = null;
 
-        public MeshTag(Vector3 Color, Texture2D Texture,
+        public MeshTag(Vector4 Color, Texture2D Texture,
         float SpecularPower)
         {
             this.Color = Color;
